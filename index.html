@@ -308,6 +308,19 @@
   .contact p { color: #c3c8d8; margin: 0 0 30px; text-shadow: 0 0 14px rgb(2 3 10 / .95), 0 0 4px rgb(2 3 10 / .9); }
   footer { border-top: 1px solid var(--line); color: var(--dim); font-size: 13px; padding: 28px 0 40px; }
   footer .wrap { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+  /* Phones: the closing sphere fills the middle of the screen, so the heading sits above it and
+     the address below it. Scrolled to the end, the section fills exactly the screen above the
+     fixed-height footer, which keeps both clear of the sphere. */
+  @media (max-width: 760px) {
+    .contact { display: block; height: calc(100vh - 56px); height: calc(100dvh - 56px); min-height: 0; padding: 0; }
+    .contact .wrap { display: flex; flex-direction: column; align-items: center; height: 100%; padding-top: 76px; padding-bottom: 22px; }
+    /* the nav already says "Get in touch", so the heading is kept for screen readers only */
+    .contact h2 { position: absolute; width: 1px; height: 1px; margin: 0; overflow: hidden; clip-path: inset(50%); }
+    .contact p { margin: 0; font-size: 13px; }
+    .contact .btn { margin-top: auto; padding: 9px 16px; font-size: 13px; }
+    footer { display: flex; align-items: center; height: 56px; padding: 0; font-size: 12px; }
+    footer .wrap { width: 100%; row-gap: 0; }
+  }
 
   /* reveal on scroll */
   .reveal { opacity: 0; transform: translateY(28px); transition: opacity .9s var(--ease), transform .9s var(--ease), var(--lg-tr); }
