@@ -1541,14 +1541,6 @@
   };
 
   /* ---------- Runner ---------- */
-  // Every sketch except the hero fallback is graded into the site's blue–violet light, so the
-  // cards read as part of the particle world: hue and saturation come from the palette,
-  // brightness from the drawing. Set data-grade="none" on a canvas to keep its own colours.
-  function gradeFor(ctx, w, h) {
-    const g = ctx.createLinearGradient(0, 0, w, h);
-    g.addColorStop(0, 'rgb(96, 124, 255)'); g.addColorStop(0.6, 'rgb(164, 112, 255)'); g.addColorStop(1, 'rgb(72, 196, 226)');
-    return g;
-  }
   class Stage {
     constructor(c) {
       this.c = c; this.ctx = c.getContext('2d'); this.o = { ...c.dataset };
@@ -1570,7 +1562,6 @@
       this.c.width = Math.round(b.width * dpr); this.c.height = Math.round(b.height * dpr);
       this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       this.s = this.scene.init(this.w, this.h, this.o);
-      this.grade = this.o.scene === 'hero' || this.o.grade === 'none' ? null : gradeFor(this.ctx, this.w, this.h);
       if (reduce) for (let i = 0; i < 100; i++) this.step(1 / 30);
       else this.step(0);
     }
@@ -1580,13 +1571,6 @@
       this.ctx.save();
       this.scene.draw(this.ctx, this.w, this.h, this.t, dt, this.s, this, this.o);
       this.ctx.restore();
-      if (this.grade) {
-        const ctx = this.ctx;
-        ctx.save();
-        ctx.globalCompositeOperation = 'color'; ctx.globalAlpha = 0.62;
-        ctx.fillStyle = this.grade; ctx.fillRect(0, 0, this.w, this.h);
-        ctx.restore();
-      }
     }
   }
 
