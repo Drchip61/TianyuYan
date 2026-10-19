@@ -2,12 +2,14 @@
    On load a particle sphere bursts into a tree standing in rippling water. Scrolling sends the
    publication venues orbiting around it, then folds the tree into a glass cube that spells my name.
    Scrolling always settles on one of those three scenes, and landing on one sends a tremor
-   through the particles. Plain WebGL, no libraries. */
+   through the particles. The canvas sits behind the whole page: past the intro the cube breaks
+   into a slow galaxy that turns as you read, and at the end it gathers back into the sphere.
+   Plain WebGL, no libraries. */
 (() => {
   'use strict';
   const story = document.querySelector('.story');
   if (!story) return;
-  const stage = story.querySelector('.stage'), canvas = story.querySelector('#gl');
+  const stage = story.querySelector('.stage'), canvas = document.getElementById('gl'), finale = document.getElementById('contact');
   const TAU = Math.PI * 2, FLOOR = -1.25, FOV = 42 * Math.PI / 180;
   const clamp = (x, a = 0, b = 1) => Math.max(a, Math.min(b, x));
   const lerp = (a, b, t) => a + (b - a) * t;
@@ -137,10 +139,30 @@
     return { p, b };
   }
 
+  function galaxy(N, r) {
+    // two-armed spiral of dust in the XZ plane; the model tilt shows it from above
+    const p = new Float32Array(N * 3), b = new Float32Array(N), g = () => (r() + r() + r() - 1.5) / 1.5;
+    for (let i = 0; i < N; i++) {
+      const u = r();
+      let x, y, z, k;
+      if (u < 0.74) {          // arms
+        const rad = 0.3 + Math.pow(r(), 0.75) * 3.6, a = (r() < 0.5 ? 0 : Math.PI) + rad * 1.25 + g() * (0.25 + rad * 0.06), sp = 0.06 + rad * 0.05;
+        x = Math.cos(a) * rad + g() * sp; z = Math.sin(a) * rad + g() * sp; y = g() * (0.04 + rad * 0.015); k = 0.45 + r() * 0.7;
+      } else if (u < 0.86) {   // core
+        x = g() * 0.42; y = g() * 0.14; z = g() * 0.42; k = 1.1 + r() * 0.5;
+      } else {                 // thin halo of strays
+        const a = r() * TAU, rad = 1 + r() * 3.4;
+        x = Math.cos(a) * rad; y = g() * 0.6; z = Math.sin(a) * rad; k = 0.3 + r() * 0.3;
+      }
+      p[i * 3] = x; p[i * 3 + 1] = y; p[i * 3 + 2] = z; b[i] = k;
+    }
+    return { p, b };
+  }
+
   // ---------- scene orchestration (runs with or without WebGL) ----------
   const scenes = [...story.querySelectorAll('.scene')];
   const pills = [...story.querySelectorAll('.pill')];
-  story.querySelectorAll('.split').forEach(el => {
+  document.querySelectorAll('.split').forEach(el => {   // the intro's titles and every section title
     let i = 0;
     el.setAttribute('aria-label', el.textContent.trim().replace(/\s+/g, ' '));
     const walk = node => {
@@ -164,8 +186,6 @@
   addEventListener('pointermove', e => {
     mouse.tx = e.clientX / innerWidth * 2 - 1; mouse.ty = 1 - e.clientY / innerHeight * 2; mouse.last = performance.now();
   }, { passive: true });
-  let visible = true;
-  new IntersectionObserver(es => { visible = es[0].isIntersecting; }).observe(story);
   const progress = () => { const r = story.getBoundingClientRect(); return clamp(-r.top / Math.max(1, r.height - innerHeight)); };
 
   // ---------- detents: scrolling settles on a scene ----------
@@ -240,15 +260,17 @@
   })();
 
   function resize() {
-    const r = stage.getBoundingClientRect(), w = Math.round(r.width), h = Math.round(r.height);
+    const r = (gl ? canvas : stage).getBoundingClientRect(), w = Math.round(r.width), h = Math.round(r.height);
     dpr = Math.min(devicePixelRatio || 1, mobile ? 1.5 : 1.75);
     if (w !== W || h !== H) { W = w; H = h; if (canvas) { canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr); } }
   }
-  function camera(c) {
+  // c: tree → cube, g: cube → galaxy, f: galaxy → closing sphere
+  function camera(c, g, f) {
     const aspect = W / H, portrait = aspect < 0.9, fit = Math.max(1, 0.75 / aspect);
-    camZ = lerp(4.4, 4.2, c) * fit;
+    camZ = lerp(lerp(lerp(4.4, 4.2, c), 4.9, g), 4.6, f) * fit;
     proj = M.persp(FOV, aspect, 0.1, 80);
-    view = M.look([0, lerp(0.3, 0.2, c), camZ], [0, lerp(-0.18, -0.02, c) - (portrait ? 0.35 * fit : 0), 0]);
+    const ey = lerp(lerp(lerp(0.3, 0.2, c), 0.5, g), 0.3, f), ty = lerp(lerp(lerp(-0.18, -0.02, c), 0, g), 0.2, f);
+    view = M.look([0, ey, camZ], [0, ty - (portrait ? 0.35 * fit * (1 - g) : 0), 0]);
   }
   function placePills(t, s, kick) {
     const pv = smooth(0.14, 0.26, s) * (1 - smooth(0.44, 0.54, s));
@@ -268,15 +290,17 @@
   // ---------- WebGL ----------
   const gl = canvas && canvas.getContext('webgl', { antialias: false, alpha: false, depth: false, powerPreference: 'high-performance' });
   if (!gl) {
+    canvas.hidden = true;
     story.classList.add('no-gl');
     const fb = story.querySelector('.fallback');
     if (fb) fb.hidden = false;
   }
   const VS = `
-    attribute vec3 aA, aB, aC, aK;
-    attribute vec4 aR;            // x: stagger, y: size, z: hue, w: random
+    attribute vec3 aA, aB, aC, aD;  // sphere, tree, cube, galaxy (the closing sphere reuses aA)
+    attribute vec4 aK;              // brightness in each shape
+    attribute vec4 aR;              // x: stagger, y: size, z: hue, w: random
     uniform mat4 uProj, uView, uModel;
-    uniform float uTime, uP, uPx, uReflect, uFloor, uScatter, uAspect, uMouseStr, uKickT;
+    uniform float uTime, uP, uPx, uReflect, uFloor, uScatter, uAspect, uMouseStr, uKickT, uDim;
     uniform vec2 uMouse;
     varying float vA;
     varying vec3 vC;
@@ -289,10 +313,12 @@
     void main() {
       float t1 = smoothstep(0.0, 1.0, clamp((uP - aR.x * 0.35) / 0.65, 0.0, 1.0));
       float t2 = smoothstep(0.0, 1.0, clamp((uP - 1.0 - aR.x * 0.35) / 0.65, 0.0, 1.0));
-      vec3 p = mix(mix(aA, aB, t1), aC, t2);
+      float t3 = smoothstep(0.0, 1.0, clamp((uP - 2.0 - aR.x * 0.35) / 0.65, 0.0, 1.0));
+      float t4 = smoothstep(0.0, 1.0, clamp((uP - 3.0 - aR.x * 0.35) / 0.65, 0.0, 1.0));
+      vec3 p = mix(mix(mix(mix(aA, aB, t1), aC, t2), aD, t3), aA, t4);
       float th = aR.w * 43.98, ph = acos(2.0 * fract(aR.w * 13.37 + aR.x * 3.1) - 1.0);
       vec3 d = vec3(sin(ph) * cos(th), cos(ph), sin(ph) * sin(th));
-      p += d * (sin(3.14159 * t1) + sin(3.14159 * t2)) * (0.3 + 0.5 * aR.w) * uScatter;
+      p += d * (sin(3.14159 * t1) + sin(3.14159 * t2) + sin(3.14159 * t3) + sin(3.14159 * t4)) * (0.3 + 0.5 * aR.w) * uScatter;
       p += 0.012 * uScatter * vec3(sin(uTime * 1.3 + aR.x * 40.0), sin(uTime * 1.1 + aR.w * 50.0), cos(uTime * 1.7 + aR.x * 30.0));
       // landing tremor: a fast shiver, a jelly wobble, and a bright ring running out from the centre
       vec3 kc = p - vec3(0.0, -0.25, 0.0);
@@ -311,15 +337,15 @@
       ndc += normalize(dm + 1e-4) * uMouseStr * smoothstep(0.22, 0.0, length(dm * vec2(uAspect, 1.0))) * 0.022;
       gl_Position = vec4(ndc * cp.w, cp.z, cp.w);
       gl_PointSize = max(1.0, aR.y * uPx / max(0.5, -vp.z));
-      float k = mix(mix(aK.x, aK.y, t1), aK.z, t2);
+      float k = mix(mix(mix(mix(aK.x, aK.y, t1), aK.z, t2), aK.w, t3), aK.x, t4);
       float tw = 0.75 + 0.25 * sin(uTime * 2.3 + aR.w * 40.0);
-      vA = k * tw * (1.0 + kAmp * 0.5 + ring * 1.4) * (uReflect > 0.5 ? 0.16 * exp(-max(above, 0.0) * 1.2) * step(0.0, above) : 1.0);
+      vA = k * tw * uDim * (1.0 + kAmp * 0.5 + ring * 1.4) * (uReflect > 0.5 ? 0.16 * exp(-max(above, 0.0) * 1.2) * step(0.0, above) : 1.0);
       vC = pal(aR.z);
     }`;
   const FLOOR_VS = `
     attribute vec3 aF;            // x, z, random
     uniform mat4 uProj, uView;
-    uniform float uTime, uFloor, uPx, uKickT;
+    uniform float uTime, uFloor, uPx, uKickT, uFloorA;
     varying float vA;
     varying vec3 vC;
     void main() {
@@ -333,7 +359,7 @@
       vec4 vp = uView * vec4(q.x, uFloor + (w1 + w2) * 0.02 + splash * 0.07, q.y, 1.0);
       gl_Position = uProj * vp;
       gl_PointSize = max(1.0, (1.0 + aF.z) * uPx / max(0.5, -vp.z));
-      vA = (0.07 + (w1 + w2) * 1.5 + splash * 1.6) * smoothstep(5.5, 0.6, length(q));
+      vA = (0.07 + (w1 + w2) * 1.5 + splash * 1.6) * smoothstep(5.5, 0.6, length(q)) * uFloorA;
       vC = mix(vec3(0.2, 0.42, 1.0), vec3(0.5, 0.4, 1.0), aF.z);
     }`;
   const FS = `
@@ -363,35 +389,38 @@
       const uniforms = (p, names) => Object.fromEntries(names.map(n => [n, gl.getUniformLocation(p, n)]));
       const buf = data => { const b = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, b); gl.bufferData(gl.ARRAY_BUFFER, data, gl.STATIC_DRAW); return b; };
       P1 = prog(VS, FS); P2 = prog(FLOOR_VS, FS);
-      U1 = uniforms(P1, ['uProj', 'uView', 'uModel', 'uTime', 'uP', 'uPx', 'uReflect', 'uFloor', 'uScatter', 'uAspect', 'uMouseStr', 'uMouse', 'uKickT']);
-      U2 = uniforms(P2, ['uProj', 'uView', 'uTime', 'uFloor', 'uPx', 'uKickT']);
+      U1 = uniforms(P1, ['uProj', 'uView', 'uModel', 'uTime', 'uP', 'uPx', 'uReflect', 'uFloor', 'uScatter', 'uAspect', 'uMouseStr', 'uMouse', 'uKickT', 'uDim']);
+      U2 = uniforms(P2, ['uProj', 'uView', 'uTime', 'uFloor', 'uPx', 'uKickT', 'uFloorA']);
 
       const r = rng(7), N = mobile ? 11000 : 26000;
-      const A = sphere(N, r), B = tree(N, r), C = cube(N, r, 'Tianyu Yan');
-      shuffleTriples(A.p, A.b, r); shuffleTriples(B.p, B.b, r); shuffleTriples(C.p, C.b, r);
-      const R = new Float32Array(N * 4), K = new Float32Array(N * 3);
+      const A = sphere(N, r), B = tree(N, r), C = cube(N, r, 'Tianyu Yan'), D = galaxy(N, r);
+      shuffleTriples(A.p, A.b, r); shuffleTriples(B.p, B.b, r); shuffleTriples(C.p, C.b, r); shuffleTriples(D.p, D.b, r);
+      const R = new Float32Array(N * 4), K = new Float32Array(N * 4);
       for (let i = 0; i < N; i++) {
         R[i * 4] = r(); R[i * 4 + 1] = 0.6 + r() * 0.9; R[i * 4 + 2] = r(); R[i * 4 + 3] = r();
-        K[i * 3] = A.b[i]; K[i * 3 + 1] = B.b[i]; K[i * 3 + 2] = C.b[i];
+        K[i * 4] = A.b[i]; K[i * 4 + 1] = B.b[i]; K[i * 4 + 2] = C.b[i]; K[i * 4 + 3] = D.b[i];
       }
-      main = { n: N, attrs: { aA: [buf(A.p), 3], aB: [buf(B.p), 3], aC: [buf(C.p), 3], aR: [buf(R), 4], aK: [buf(K), 3] } };
+      main = { n: N, attrs: { aA: [buf(A.p), 3], aB: [buf(B.p), 3], aC: [buf(C.p), 3], aD: [buf(D.p), 3], aR: [buf(R), 4], aK: [buf(K), 4] } };
 
-      const NS = mobile ? 700 : 1500, S = new Float32Array(NS * 3), SR = new Float32Array(NS * 4), SK = new Float32Array(NS * 3);
+      const NS = mobile ? 700 : 1500, S = new Float32Array(NS * 3), SR = new Float32Array(NS * 4), SK = new Float32Array(NS * 4);
       for (let i = 0; i < NS; i++) {
         const th = r() * TAU, u = r() * 0.95 + 0.02, rad = 14 + r() * 10, s = Math.sqrt(1 - u * u);
         S[i * 3] = Math.cos(th) * s * rad; S[i * 3 + 1] = u * rad * 0.6 - 1; S[i * 3 + 2] = Math.sin(th) * s * rad - 6;
         SR[i * 4] = 0; SR[i * 4 + 1] = 0.6 + r() * 1.4; SR[i * 4 + 2] = r(); SR[i * 4 + 3] = r();
-        SK[i * 3] = SK[i * 3 + 1] = SK[i * 3 + 2] = 0.35 + r() * 0.5;
+        SK[i * 4] = SK[i * 4 + 1] = SK[i * 4 + 2] = SK[i * 4 + 3] = 0.35 + r() * 0.5;
       }
       const sb = buf(S);
-      stars = { n: NS, attrs: { aA: [sb, 3], aB: [sb, 3], aC: [sb, 3], aR: [buf(SR), 4], aK: [buf(SK), 3] } };
+      stars = { n: NS, attrs: { aA: [sb, 3], aB: [sb, 3], aC: [sb, 3], aD: [sb, 3], aR: [buf(SR), 4], aK: [buf(SK), 4] } };
 
       const NF = mobile ? 9000 : 22000, F = new Float32Array(NF * 3);
       for (let i = 0; i < NF; i++) { const a = r() * TAU, rr = 5.5 * Math.sqrt(r()); F[i * 3] = Math.cos(a) * rr; F[i * 3 + 1] = Math.sin(a) * rr; F[i * 3 + 2] = r(); }
       floor = { n: NF, attrs: { aF: [buf(F), 3] } };
+      document.documentElement.classList.add('has-gl');
     } catch (err) {
       console.warn('Particle stage disabled:', err);
       P1 = null;
+      canvas.hidden = true;
+      story.classList.add('no-gl');
       const fb = story.querySelector('.fallback');
       if (fb) fb.hidden = false;
     }
@@ -404,7 +433,7 @@
       gl.bindBuffer(gl.ARRAY_BUFFER, b); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, size, gl.FLOAT, false, 0, 0);
     }
   }
-  function draw(t, P, yaw, pitch, kt) {
+  function draw(t, P, yaw, pitch, kt, dim, water) {
     gl.viewport(0, 0, canvas.width, canvas.height);
     gl.clearColor(0.008, 0.012, 0.035, 1); gl.clear(gl.COLOR_BUFFER_BIT);
     gl.enable(gl.BLEND); gl.blendFunc(gl.ONE, gl.ONE);
@@ -416,42 +445,54 @@
     gl.uniform2f(U1.uMouse, mouse.x, mouse.y);
     // stars
     gl.uniformMatrix4fv(U1.uModel, false, M.model(t * 0.006, 0));
-    gl.uniform1f(U1.uKickT, kt);
+    gl.uniform1f(U1.uKickT, kt); gl.uniform1f(U1.uDim, 1);
     gl.uniform1f(U1.uP, 0); gl.uniform1f(U1.uScatter, 0); gl.uniform1f(U1.uReflect, 0); gl.uniform1f(U1.uMouseStr, 0); gl.uniform1f(U1.uPx, px * 0.9);
     bind(P1, stars); gl.drawArrays(gl.POINTS, 0, stars.n);
-    // rippling water
-    gl.useProgram(P2);
-    gl.uniformMatrix4fv(U2.uProj, false, proj); gl.uniformMatrix4fv(U2.uView, false, view);
-    gl.uniform1f(U2.uTime, t); gl.uniform1f(U2.uFloor, FLOOR); gl.uniform1f(U2.uPx, px); gl.uniform1f(U2.uKickT, kt);
-    bind(P2, floor); gl.drawArrays(gl.POINTS, 0, floor.n);
+    // rippling water (gone while the galaxy drifts behind the content)
+    if (water > 0.01) {
+      gl.useProgram(P2);
+      gl.uniformMatrix4fv(U2.uProj, false, proj); gl.uniformMatrix4fv(U2.uView, false, view);
+      gl.uniform1f(U2.uTime, t); gl.uniform1f(U2.uFloor, FLOOR); gl.uniform1f(U2.uPx, px); gl.uniform1f(U2.uKickT, kt); gl.uniform1f(U2.uFloorA, water);
+      bind(P2, floor); gl.drawArrays(gl.POINTS, 0, floor.n);
+    }
     // reflection, then the particles themselves
     gl.useProgram(P1);
     gl.uniformMatrix4fv(U1.uModel, false, M.model(yaw, pitch));
-    gl.uniform1f(U1.uP, P); gl.uniform1f(U1.uScatter, 1); gl.uniform1f(U1.uPx, px); gl.uniform1f(U1.uMouseStr, mouse.str);
+    gl.uniform1f(U1.uP, P); gl.uniform1f(U1.uScatter, 1); gl.uniform1f(U1.uPx, px); gl.uniform1f(U1.uMouseStr, mouse.str); gl.uniform1f(U1.uDim, dim);
     bind(P1, main);
-    gl.uniform1f(U1.uReflect, 1); gl.drawArrays(gl.POINTS, 0, main.n);
+    if (water > 0.01) { gl.uniform1f(U1.uDim, dim * water); gl.uniform1f(U1.uReflect, 1); gl.drawArrays(gl.POINTS, 0, main.n); gl.uniform1f(U1.uDim, dim); }
     gl.uniform1f(U1.uReflect, 0); gl.drawArrays(gl.POINTS, 0, main.n);
   }
 
   // ---------- frame loop ----------
   const t0 = performance.now();
+  let tick = 0;
   function frame(now) {
     requestAnimationFrame(frame);
-    if (!visible) return;
     const t = (now - t0) / 1000, tt = reduce ? 2 : t, s = progress();
     const intro = reduce ? 1 : smooth(0.5, 3.2, t), toCube = smooth(0.5, 0.74, s);
+    // past the intro: the cube breaks into a galaxy while the stage scrolls away, and the
+    // closing section gathers it back into the opening sphere
+    const out = (innerHeight - story.getBoundingClientRect().bottom) / innerHeight;
+    const toGal = smooth(0.05, 0.85, out), toEnd = finale ? smooth(0.95, 0.3, finale.getBoundingClientRect().top / innerHeight) : 0;
+    // while only the galaxy drifts behind the content, every other frame is plenty
+    if (toGal > 0.99 && toEnd < 0.01 && (tick++ & 1)) return;
     const kt = Math.min(10, (now - landed) / 1000), wob = Math.exp(-kt * 4) * Math.sin(kt * 21);   // landing tremor
     mouse.x += (mouse.tx - mouse.x) * 0.06; mouse.y += (mouse.ty - mouse.y) * 0.06;
     mouse.str = lerp(mouse.str, now - mouse.last < 700 ? 1 : 0, 0.05);
     scenes[0].classList.toggle('on', intro > 0.45 && s < 0.16);
     scenes[1].classList.toggle('on', s > 0.2 && s < 0.48);
     scenes[2].classList.toggle('on', s > 0.7);
-    resize(); camera(toCube);
+    resize(); camera(toCube, toGal, toEnd);
     placePills(tt, s, wob * 0.12);
     if (gl && P1) {
       const yawTree = reduce ? 0.6 : t * 0.12;
       const yawCube = Math.round(yawTree / TAU) * TAU + (reduce ? 0 : Math.sin(t * 0.5) * 0.38) + mouse.x * 0.35;
-      draw(tt, intro + toCube, lerp(yawTree + mouse.x * 0.25, yawCube, toCube), 0.04 + mouse.y * 0.06 + wob * 0.018, kt);
+      const yawGal = yawCube + scrollY * 0.00045 + (reduce ? 0 : t * 0.02);   // reading turns the galaxy
+      const yaw = lerp(lerp(yawTree + mouse.x * 0.25, yawCube, toCube), yawGal, toGal);
+      const pitch = lerp(0.04 + mouse.y * 0.06, 0.62 + mouse.y * 0.05, toGal * (1 - toEnd)) + wob * 0.018;
+      const dim = lerp(lerp(1, 0.62, toGal), 0.72, toEnd), water = Math.max(1 - toGal, toEnd);
+      draw(tt, intro + toCube + toGal + toEnd, yaw, pitch, kt, dim, water);
     }
   }
   requestAnimationFrame(frame);

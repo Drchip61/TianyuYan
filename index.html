@@ -83,7 +83,7 @@
   .ambient i:nth-child(3) { --c: rgb(40 210 190 / .17); --t: 47s; left: 18vw; bottom: -30vmax; animation-delay: -25s; }
   @keyframes drift { to { translate: 14vw 12vh; scale: 1.2; } }
   a { color: inherit; text-decoration: none; }
-  .wrap { max-width: 1120px; margin: 0 auto; padding: 0 28px; position: relative; z-index: 1; }
+  .wrap { max-width: 1600px; margin: 0 auto; padding: 0 4vw; position: relative; z-index: 1; }
 
   /* ---------- liquid glass ----------
      Every button and box shares one material: a faint fill, a pointer-following light,
@@ -144,8 +144,14 @@
 
   /* the scroll-driven particle stage */
   .story { position: relative; height: 340vh; padding: 0; }
-  .story::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 28vh; background: linear-gradient(transparent, var(--bg)); pointer-events: none; z-index: 3; }
-  .stage { position: sticky; top: 0; height: 100vh; height: 100svh; overflow: hidden; background: #02030a; }
+  /* The particle world is one fixed canvas behind the whole page: the intro plays over it, and
+     after the intro it keeps drifting behind the content. Without WebGL the stage gets its own
+     backdrop and fades out at the bottom instead. */
+  .world { position: fixed; left: 0; top: 0; width: 100%; height: 100vh; height: 100lvh; z-index: 0; display: block; pointer-events: none; }
+  .story.no-gl::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 28vh; background: linear-gradient(transparent, var(--bg)); pointer-events: none; z-index: 3; }
+  .stage { position: sticky; top: 0; height: 100vh; height: 100svh; overflow: hidden; }
+  .no-gl .stage { background: #02030a; }
+  html.has-gl .ambient { opacity: .5; }
   .stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
   .stage canvas[hidden] { display: none; }
   .glass { --lg-blur: 7px; --lg-drop: 0 18px 44px -18px rgb(0 0 0 / .7); }
@@ -204,10 +210,12 @@
 
   /* sections */
   section { padding: 110px 0 20px; position: relative; }
-  .sec-head { display: grid; grid-template-columns: auto 1fr; gap: 6px 22px; align-items: baseline; margin-bottom: 44px; }
-  .sec-head .num { font: 600 14px/1 ui-monospace, "SF Mono", Menlo, monospace; background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
-  .sec-head h2 { margin: 0; font: 400 clamp(34px, 4.6vw, 56px)/1.05 var(--mono); letter-spacing: -.045em; }
-  .sec-head p { grid-column: 2; margin: 8px 0 0; color: var(--muted); max-width: 640px; }
+  /* section heads speak the intro's language: a glass tag, a large mono title that resolves
+     letter by letter, and a short line under it */
+  .sec-head { margin-bottom: 56px; }
+  .sec-head h2 { margin: 22px 0 0; font: 400 clamp(46px, 6.6vw, 104px)/.95 var(--mono); letter-spacing: -.05em; color: #f4f6ff; }
+  .sec-head p { margin: 18px 0 0; color: #b8c0d6; font-size: 16px; line-height: 1.55; max-width: 640px; }
+  .reveal.in .split .ch { opacity: 1; filter: blur(0); transform: none; }
 
   /* large glass boxes: a quieter fill and rim, a wide bluish pointer light */
   .glow { --lg-spot: 420px; --lg-hl: 175 190 255; --lg-blur: 22px; --lg-rim: var(--lg-rim-soft); --lg-fill: rgb(255 255 255 / .03); --lg-drop: 0 24px 60px -28px rgb(0 0 0 / .9); }
@@ -224,7 +232,7 @@
   .project-body > div + div { border-left: 1px solid var(--line); }
   .kind { display: inline-flex; align-items: center; gap: 7px; font-size: 11.5px; font-weight: 650; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
   .kind::before { content: ""; width: 18px; height: 2px; border-radius: 2px; background: var(--grad); }
-  .project h3 { margin: 12px 0 4px; font-size: 30px; letter-spacing: -.02em; line-height: 1.15; }
+  .project h3 { margin: 14px 0 8px; font: 400 clamp(38px, 4.4vw, 64px)/1 var(--mono); letter-spacing: -.05em; color: #f4f6ff; }
   .project h3 + .sub { color: var(--muted); font-size: 15.5px; margin: 0; line-height: 1.45; }
   .project p.desc { margin: 0 0 18px; font-size: 15.5px; color: #c9ccd6; }
   .feat { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; padding: 0; list-style: none; }
@@ -285,10 +293,18 @@
   .timeline div { font-size: 18px; font-weight: 600; margin-top: 6px; letter-spacing: -.01em; }
   .timeline span { color: var(--muted); font-size: 14px; }
 
+  .awards { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .awards li { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; padding: 24px 24px 22px; border-radius: 22px; }
+  .awards time { font: 600 12.5px/1 var(--mono); letter-spacing: .08em; color: var(--dim); }
+  .awards b { margin: 0; font: 400 clamp(26px, 2.4vw, 34px)/1.05 var(--mono); letter-spacing: -.04em; text-transform: none; color: #f4f6ff; }
+  .awards .badge { font-size: 12px; color: #c7d3ff; }
+  .awards div { font-size: 14.5px; line-height: 1.5; color: #b9bfd0; flex: 1; }
+  @media (max-width: 900px) { .awards { grid-template-columns: 1fr; } }
+
   /* contact */
-  .contact { text-align: center; padding-top: 130px; padding-bottom: 90px; }
-  .contact h2 { font-size: clamp(40px, 7vw, 84px); letter-spacing: -.045em; margin: 0 0 18px; line-height: 1; }
-  .contact p { color: var(--muted); margin: 0 0 30px; }
+  .contact { text-align: center; min-height: 100vh; min-height: 100svh; display: grid; place-items: center; padding-top: 90px; padding-bottom: 90px; }
+  .contact h2 { font: 400 clamp(48px, 8.4vw, 128px)/.95 var(--mono); letter-spacing: -.05em; margin: 0 0 22px; color: #f4f6ff; text-shadow: 0 0 40px rgb(2 3 10 / .8); }
+  .contact p { color: #c3c8d8; margin: 0 0 30px; text-shadow: 0 0 14px rgb(2 3 10 / .95), 0 0 4px rgb(2 3 10 / .9); }
   footer { border-top: 1px solid var(--line); color: var(--dim); font-size: 13px; padding: 28px 0 40px; }
   footer .wrap { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
 
@@ -309,9 +325,8 @@
     .grid { grid-template-columns: 1fr; }
     .card.wide { grid-column: auto; }
     .project-body > div, .card.wide .card-body { padding: 24px 20px 26px; }
-    .project h3 { font-size: 25px; }
-    .sec-head { grid-template-columns: 1fr; }
-    .sec-head p { grid-column: 1; }
+    .project h3 { font-size: 34px; }
+    .sec-head { margin-bottom: 40px; }
     section { padding-top: 80px; }
   }
   @media (max-width: 760px) {
@@ -346,6 +361,12 @@
   .card[data-paper]:hover .viz::after, .card[data-paper]:focus-within .viz::after { opacity: 1; translate: 0 0; }
   .links a.go { color: #fff; text-shadow: 0 1px 1px rgb(0 20 80 / .35); --lg-fill: rgb(52 124 255 / .72); --lg-drop: 0 8px 22px -8px rgb(47 123 255 / .7); }
   .links a.res::before { content: ""; display: inline-block; width: 6px; height: 6px; margin-right: 7px; vertical-align: 1px; border-radius: 50%; background: var(--a3); box-shadow: 0 0 8px var(--a3); }
+  .pstat { position: absolute; left: 14px; bottom: 14px; z-index: 2; display: grid; gap: 3px; padding: 10px 14px 11px; border-radius: 14px; pointer-events: none;
+    background: rgb(8 10 18 / .58); box-shadow: inset 0 0 0 1px rgb(255 255 255 / .14), 0 10px 30px -12px rgb(0 0 0 / .8); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); }
+  .pstat b { font: 600 clamp(22px, 2.2vw, 30px)/1 var(--sans); letter-spacing: -.03em; color: #fff; text-shadow: 0 0 22px rgb(124 156 255 / .6); }
+  .pstat b small { font-size: .5em; font-weight: 600; letter-spacing: 0; margin-left: 4px; color: #c9d4ff; }
+  .pstat > span { font-size: 11.5px; color: #aab3cc; }
+  @media (max-width: 640px) { .pstat { left: 10px; bottom: 10px; padding: 7px 10px 8px; border-radius: 11px; } .pstat b { font-size: 19px; } .pstat > span { font-size: 10.5px; } }
   html.sheet-open { overflow: hidden; }
   dialog.sheet { padding: 0; border: 0; background: none; color: var(--text); width: min(980px, calc(100vw - 32px)); max-width: none; max-height: none; overflow: visible; }
   dialog.sheet::backdrop { background: rgb(3 4 9 / .55); -webkit-backdrop-filter: blur(14px) saturate(1.3); backdrop-filter: blur(14px) saturate(1.3); opacity: 0; transition: opacity .35s var(--ease); }
@@ -425,6 +446,7 @@
 </style>
 </head>
 <body>
+<canvas class="world" id="gl" aria-hidden="true"></canvas>
 <div class="spot" aria-hidden="true"></div>
 <div class="ambient" aria-hidden="true"><i></i><i></i><i></i></div>
 
@@ -441,7 +463,6 @@
 
 <section class="story" id="top" aria-label="Introduction">
   <div class="stage">
-    <canvas id="gl" aria-hidden="true"></canvas>
     <canvas class="fallback" data-scene="hero" data-pointer hidden aria-hidden="true"></canvas>
     <div class="pills" aria-hidden="true">
       <div class="pill"><b>CVPR</b> 2024<small>Highlight</small></div>
@@ -497,7 +518,7 @@
   <section id="work">
     <div class="wrap">
       <div class="sec-head reveal">
-        <span class="num">01</span><h2>Featured work</h2>
+        <span class="tag">01 · Systems</span><h2 class="split">Featured work</h2>
         <p>Two systems I built at Alaya Lab.</p>
       </div>
 
@@ -543,7 +564,7 @@
   <section id="publications">
     <div class="wrap">
       <div class="sec-head reveal">
-        <span class="num">02</span><h2>Publications</h2>
+        <span class="tag">02 · Research</span><h2 class="split">Publications</h2>
         <p>Segment Anything models for marine animals and remote sensing, and proactive assistance in egocentric video.</p>
       </div>
       <p class="note reveal">* equal contribution. Student-first: first student author after the advisor. Animations are schematic sketches drawn in code, not model outputs.</p>
@@ -633,7 +654,7 @@
   <section id="experience">
     <div class="wrap">
       <div class="sec-head reveal">
-        <span class="num">03</span><h2>Experience</h2>
+        <span class="tag">03 · Path</span><h2 class="split">Experience</h2>
       </div>
       <div class="exp">
         <div class="reveal">
@@ -667,7 +688,7 @@
   <section id="projects">
     <div class="wrap">
       <div class="sec-head reveal">
-        <span class="num">04</span><h2>Earlier projects</h2>
+        <span class="tag">04 · Applied</span><h2 class="split">Earlier projects</h2>
         <p>Applied work in medical imaging and media.</p>
       </div>
       <div class="grid">
@@ -696,19 +717,19 @@
   <section id="awards">
     <div class="wrap">
       <div class="sec-head reveal">
-        <span class="num">05</span><h2>Awards</h2>
+        <span class="tag">05 · Recognition</span><h2 class="split">Awards</h2>
       </div>
-      <ol class="timeline reveal">
-        <li><time>DEC 2023</time><div>Huawei Ascend AI Developer Kit Competition — Regional Gold Award</div><span>First contributor</span></li>
-        <li><time>AUG 2023</time><div>Liaoning Province Innovation &amp; Entrepreneurship Competition — Special Prize</div><span>First contributor</span></li>
-        <li><time>DEC 2021</time><div>National Undergraduate Computer Design Competition — Second Prize</div><span>First contributor</span></li>
+      <ol class="awards">
+        <li class="skill reveal"><time>DEC 2023</time><b>Regional Gold Award</b><div>Huawei Ascend AI Developer Kit Competition</div><span class="badge role">First contributor</span></li>
+        <li class="skill reveal"><time>AUG 2023</time><b>Special Prize</b><div>Liaoning Province Innovation &amp; Entrepreneurship Competition</div><span class="badge role">First contributor</span></li>
+        <li class="skill reveal"><time>DEC 2021</time><b>Second Prize</b><div>National Undergraduate Computer Design Competition</div><span class="badge role">First contributor</span></li>
       </ol>
     </div>
   </section>
 
   <section class="contact" id="contact">
     <div class="wrap reveal">
-      <h2><span class="grad">Get in touch</span></h2>
+      <h2 class="split">Get in touch</h2>
       <p>Questions about my work, or ideas to build together.</p>
       <a class="btn primary" href="mailto:2981431354@mail.dlut.edu.cn">2981431354@mail.dlut.edu.cn</a>
     </div>

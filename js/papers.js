@@ -14,7 +14,8 @@
                 strongest other method in the paper's table for that metric; vs names it,
                 either once for the row or per metric
        kpis     headline tiles: { from: [row name, metric name], label } computes the gain,
-                or { v, dec, pre, unit, label } for a number stated in the paper
+                or { v, dec, pre, unit, label } for a number stated in the paper. The first
+                one also goes on the card, with its short label
        note     where the numbers come from */
   const MARINE = [{ name: 'mIoU', up: true }, { name: 'Sα', up: true }, { name: 'Fβʷ', up: true }, { name: 'mEφ', up: true }, { name: 'MAE', up: false }];
   const PAPERS = {
@@ -35,7 +36,7 @@
         { name: 'ESTP-Bench implicit', sub: 'all', vs: 'EyeWO (trained)', ours: ['34.7'], best: ['52.5'] }
       ],
       kpis: [
-        { v: 1.7, dec: 1, unit: '×', label: 'the F1 of GPT-5-mini on EgoServe (8.0 vs 4.7), the benchmark this paper introduces' },
+        { v: 1.7, dec: 1, unit: '×', short: 'GPT-5-mini’s F1 on EgoServe', label: 'the F1 of GPT-5-mini on EgoServe (8.0 vs 4.7), the benchmark this paper introduces' },
         { v: 10.69, dec: 2, pre: '+', unit: 'pts', label: 'over GPT-4o on OVO-Bench real-time visual perception' },
         { v: 3000, unit: '+', label: 'service instances in EgoServe, across 10 categories and 4 time horizons' }
       ],
@@ -51,7 +52,7 @@
         { name: 'RUWI', vs: ['Dual-SAM', 'Dual-SAM', 'MAS-SAM', 'MAS-SAM', 'MAS-SAM / Dual-SAM'], ours: ['0.913', '0.906', '0.951', '0.969', '0.031'], best: ['0.904', '0.903', '0.941', '0.961', '0.035'] }
       ],
       kpis: [
-        { v: 20, unit: '/ 20', label: 'dataset–metric pairs where HFP-SAM2 is best, ahead of our own Dual-SAM and MAS-SAM' },
+        { v: 20, unit: '/ 20', short: 'best on every dataset and metric', label: 'dataset–metric pairs where HFP-SAM2 is best, ahead of our own Dual-SAM and MAS-SAM' },
         { from: ['MAS3K', 'Fβʷ'], label: 'on MAS3K over MAS-SAM' },
         { v: 34, unit: '×', label: 'faster point-prompt selection than global sampling (9.3 ms vs 314.8 ms), and more accurate' }
       ],
@@ -67,7 +68,7 @@
         { name: 'RUWI', vs: ['SAM-DADF', 'SAM-DADF', 'SAM-DADF', 'SAM-Adapter', 'SAM-DADF'], ours: ['0.904', '0.903', '0.939', '0.959', '0.035'], best: ['0.881', '0.889', '0.925', '0.946', '0.044'] }
       ],
       kpis: [
-        { from: ['MAS3K', 'mIoU'], label: 'on MAS3K over H2Former' },
+        { from: ['MAS3K', 'mIoU'], short: 'on MAS3K', label: 'on MAS3K over H2Former' },
         { from: ['UFO120', 'mIoU'], label: 'on UFO120 over H2Former' },
         { from: ['RUWI', 'MAE'], label: 'on RUWI over SAM-DADF' }
       ],
@@ -83,7 +84,7 @@
         { name: 'RUWI', vs: ['SAM-DADF', 'SAM-DADF', 'SAM-DADF', 'SAM-Adapter', 'SAM-DADF'], ours: ['0.902', '0.894', '0.941', '0.961', '0.035'], best: ['0.881', '0.889', '0.925', '0.946', '0.044'] }
       ],
       kpis: [
-        { v: 20, unit: '/ 20', label: 'dataset–metric pairs where MAS-SAM is best' },
+        { v: 20, unit: '/ 20', short: 'best on every dataset and metric', label: 'dataset–metric pairs where MAS-SAM is best' },
         { from: ['MAS3K', 'mIoU'], label: 'on MAS3K over H2Former' },
         { from: ['RUWI', 'MAE'], label: 'on RUWI over SAM-DADF' }
       ],
@@ -99,7 +100,7 @@
         { name: 'LEVIR-CD', vs: 'UVACD', ours: ['83.64'], best: ['83.98'] }
       ],
       kpis: [
-        { from: ['WHU-CD', 'IoU'], label: 'on WHU-CD' },
+        { from: ['WHU-CD', 'IoU'], short: 'on WHU-CD', label: 'on WHU-CD' },
         { from: ['SYSU-CD', 'IoU'], label: 'on SYSU-CD' },
         { v: 2.9, dec: 1, pre: '+', unit: 'mBA', label: 'boundary accuracy on LEVIR-CD over ChangeFormer (71.6 vs 68.7)' }
       ],
@@ -114,7 +115,7 @@
         { name: 'MSVR310', vs: ['RSCNet', 'CCNet'], ours: ['47.0', '56.5'], best: ['39.5', '55.2'] }
       ],
       kpis: [
-        { from: ['MSVR310', 'mAP'], label: 'on MSVR310 over RSCNet' },
+        { from: ['MSVR310', 'mAP'], short: 'on MSVR310', label: 'on MSVR310 over RSCNet' },
         { from: ['RGBNT201', 'mAP'], label: 'on RGBNT201 over TOP-ReID' },
         { v: 3, unit: '/ 3', label: 'benchmarks where MambaPro has the best mAP' }
       ],
@@ -131,7 +132,7 @@
         { name: 'PASCAL-S', vs: ['TE7', 'DC-Net-S', 'TE7', 'TE7'], ours: ['0.907', '0.882', '0.917', '0.052'], best: ['0.906', '0.887', '0.928', '0.047'] }
       ],
       kpis: [
-        { from: ['DUT-OMRON', 'max F'], label: 'on DUT-OMRON over DC-Net-S' },
+        { from: ['DUT-OMRON', 'max F'], short: 'on DUT-OMRON', label: 'on DUT-OMRON over DC-Net-S' },
         { v: 5, unit: '/ 5', label: 'benchmarks where MDSAM has the best max F-measure' },
         { from: ['HKU-IS', 'MAE'], label: 'on HKU-IS over BBRF' }
       ],
@@ -166,37 +167,47 @@
     ? `${m.name}: ours minus the strongest other method${+p.rows[0].ours[p.metrics.indexOf(m)] <= 1 ? ', in points (×100)' : ', in points'}. Higher is better.`
     : `${m.name}: how much lower our error is than the strongest other method’s, relative to it. Lower is better.`);
 
-  function countTo(node, from, to, dec, fmt, delay = 0, dur = 1300) {
+  // anywhere: keep counting while the sheet is closed (the cards' own figures)
+  function countTo(node, from, to, dec, fmt, delay = 0, dur = 1300, anywhere = false) {
     if (reduce) { node.textContent = fmt(to, dec); return; }
     const t0 = performance.now() + delay;
     node.textContent = fmt(from, dec);
     const f = now => {
       const t = clamp((now - t0) / dur), e = 1 - (1 - t) ** 4;
       node.textContent = fmt(from + (to - from) * e, dec);
-      if (t < 1 && dlg.open) requestAnimationFrame(f);
+      if (t < 1 && (anywhere || dlg.open)) requestAnimationFrame(f);
+      else if (t < 1) node.textContent = fmt(to, dec);
     };
     requestAnimationFrame(f);
+  }
+
+  const fmtNum = (x, d) => d ? x.toFixed(d) : Math.round(x).toLocaleString('en-US');
+  // A headline number as <b>: sign, a span that counts up, a symbol unit (%, ×, +) right
+  // against it, and a word unit set small after it. b.count() runs the count-up.
+  function figure(p, k, delay) {
+    let v = k.v, dec = k.dec ?? 0, pre = k.pre ?? '', unit = k.unit ?? '', sym = '';
+    if (/^[%×+]$/.test(unit)) { sym = unit; unit = ''; }
+    if (k.from) {
+      const r = p.rows.find(r => r.name === k.from[0]), mi = p.metrics.findIndex(m => m.name === k.from[1]), m = p.metrics[mi];
+      const g = gain(m, r.ours[mi], r.best[mi]);
+      v = Math.abs(g.v); dec = g.dec; unit = m.name;
+      if (m.up) pre = g.v >= 0 ? '+' : '−'; else { pre = '−'; sym = '%'; }
+    }
+    const b = el('b'), num = el('span', null, fmtNum(reduce ? v : 0, dec));
+    b.append(pre, num, sym);
+    if (unit) b.append(el('small', null, unit));
+    b.count = () => countTo(num, 0, v, dec, fmtNum, delay, 1300, true);
+    return b;
   }
 
   function kpis(p) {
     const wrap = el('div', 'kpis');
     p.kpis.forEach((k, i) => {
-      // a symbol unit (%, ×, +) sits right against the number; a word unit is set small after it
-      let v = k.v, dec = k.dec ?? 0, pre = k.pre ?? '', unit = k.unit ?? '', sym = '';
-      if (/^[%×+]$/.test(unit)) { sym = unit; unit = ''; }
-      if (k.from) {
-        const r = p.rows.find(r => r.name === k.from[0]), mi = p.metrics.findIndex(m => m.name === k.from[1]), m = p.metrics[mi];
-        const g = gain(m, r.ours[mi], r.best[mi]);
-        v = Math.abs(g.v); dec = g.dec; unit = m.name;
-        if (m.up) pre = g.v >= 0 ? '+' : '−'; else { pre = '−'; sym = '%'; }
-      }
-      const tile = el('div', 'kpi'), b = el('b'), num = el('span'), lab = el('span', null, k.label);
+      const tile = el('div', 'kpi'), b = figure(p, k, 120 * i);
       tile.style.setProperty('--d', (.15 + i * .12) + 's');
-      b.append(pre, num, sym);
-      if (unit) b.append(el('small', null, unit));
-      tile.append(b, lab);
+      tile.append(b, el('span', null, k.label));
       wrap.append(tile);
-      tile.count = () => countTo(num, 0, v, dec, (x, d) => d ? x.toFixed(d) : Math.round(x).toLocaleString('en-US'), 120 * i);
+      tile.count = b.count;
     });
     return wrap;
   }
@@ -335,8 +346,19 @@
   dlg.querySelector('.sheet-x').addEventListener('click', close);
 
   // The whole card opens the sheet; its own links (paper, code) still go where they point.
+  // Each card also shows its paper's first headline number, counting up when it comes into view.
+  const seen = new IntersectionObserver(es => es.forEach(e => {
+    if (e.isIntersecting) { seen.unobserve(e.target); setTimeout(() => e.target.firstChild.count(), 350); }
+  }), { threshold: 0.6 });
   document.querySelectorAll('.card[data-paper]').forEach(card => {
-    if (!PAPERS[card.dataset.paper]) { card.removeAttribute('data-paper'); card.querySelector('.links a.res')?.remove(); }
+    const p = PAPERS[card.dataset.paper];
+    if (!p) { card.removeAttribute('data-paper'); card.querySelector('.links a.res')?.remove(); return; }
+    const k = p.kpis?.[0], viz = card.querySelector('.viz');
+    if (!k || !viz) return;
+    const tag = el('div', 'pstat');
+    tag.append(figure(p, k, 0), el('span', null, k.short || k.label));
+    viz.append(tag);
+    seen.observe(tag);
   });
   document.addEventListener('click', e => {
     const card = e.target.closest('.card[data-paper]');
