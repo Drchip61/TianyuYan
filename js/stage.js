@@ -162,17 +162,28 @@
   // ---------- scene orchestration (runs with or without WebGL) ----------
   const scenes = [...story.querySelectorAll('.scene')];
   const pills = [...story.querySelectorAll('.pill')];
+  let pillHalf = 0;   // half the widest pill's width, measured again after a resize or a font swap
+  document.fonts?.addEventListener?.('loadingdone', () => { pillHalf = 0; });
   document.querySelectorAll('.split').forEach(el => {   // the intro's titles and every section title
     let i = 0;
     el.setAttribute('aria-label', el.textContent.trim().replace(/\s+/g, ' '));
+    // Letters are grouped into unbreakable words, so a narrow screen wraps titles between
+    // words instead of between any two letters.
     const walk = node => {
       for (const n of [...node.childNodes]) {
         if (n.nodeType === 3) {
           const frag = document.createDocumentFragment();
-          for (const ch of n.textContent) {
-            const s = document.createElement('span');
-            s.className = 'ch'; s.style.setProperty('--i', i++); s.textContent = ch; s.setAttribute('aria-hidden', 'true');
-            frag.appendChild(s);
+          for (const part of n.textContent.split(/(\s+)/)) {
+            if (!part) continue;
+            if (/^\s/.test(part)) { frag.appendChild(document.createTextNode(' ')); i += part.length; continue; }
+            const w = document.createElement('span');
+            w.className = 'w'; w.setAttribute('aria-hidden', 'true');
+            for (const ch of part) {
+              const s = document.createElement('span');
+              s.className = 'ch'; s.style.setProperty('--i', i++); s.textContent = ch;
+              w.appendChild(s);
+            }
+            frag.appendChild(w);
           }
           n.replaceWith(frag);
         } else if (n.nodeType === 1 && n.tagName !== 'BR') walk(n);
@@ -262,7 +273,7 @@
   function resize() {
     const r = (gl ? canvas : stage).getBoundingClientRect(), w = Math.round(r.width), h = Math.round(r.height);
     dpr = Math.min(devicePixelRatio || 1, mobile ? 1.5 : 1.75);
-    if (w !== W || h !== H) { W = w; H = h; if (canvas) { canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr); } }
+    if (w !== W || h !== H) { W = w; H = h; pillHalf = 0; if (canvas) { canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr); } }
   }
   // c: tree → cube, g: cube → galaxy, f: galaxy → closing sphere
   function camera(c, g, f) {
@@ -275,7 +286,17 @@
   function placePills(t, s, kick) {
     const pv = smooth(0.14, 0.26, s) * (1 - smooth(0.44, 0.54, s));
     if (pv < 0.002) { if (pills[0] && pills[0].style.opacity !== '0') pills.forEach(el => { el.style.opacity = '0'; }); return; }
-    const portrait = W / H < 0.9, vp = M.mul(proj, view), half = camZ * Math.tan(FOV / 2) * (W / H), rx = Math.min(2.2, half * 0.8), rz = portrait ? 2.4 : 1.35;
+    const portrait = W / H < 0.9, vp = M.mul(proj, view), half = camZ * Math.tan(FOV / 2) * (W / H), rz = portrait ? 2.4 : 1.35;
+    // Perspective magnifies the near side of the orbit, which on a phone pushes pills past the
+    // screen edges. Screen x is proportional to rx, so pull rx in until the widest pill, at the
+    // size it is drawn there, keeps a small margin everywhere on the orbit.
+    if (!pillHalf) pillHalf = Math.max(...pills.map(el => el.offsetWidth)) / 2;
+    let rx = Math.min(2.2, half * 0.8);
+    for (let j = 0; j < 36; j++) {
+      const a = j / 36 * TAU, z = Math.sin(a) * rz, c = M.apply(vp, Math.cos(a), FLOOR + 0.42, z);
+      const off = Math.abs(c[0] / c[3]) * W / 2, room = W / 2 - 10 - pillHalf * lerp(0.72, 1.12, (z + rz) / (2 * rz));
+      if (off > 1e-3) rx = Math.max(0, Math.min(rx, room / off));
+    }
     pills.forEach((el, i) => {
       const a = i / pills.length * TAU + (reduce ? 0 : t * 0.16) + s * 3;
       const x = Math.cos(a) * rx, z = Math.sin(a) * rz, y = FLOOR + 0.42 + Math.sin(t * 0.9 + i) * 0.05 - (1 - pv) * 0.3;

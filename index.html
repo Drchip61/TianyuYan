@@ -161,6 +161,7 @@
   .pill small { font-size: 12px; color: #9fb4ff; margin-left: 6px; font-weight: 600; }
   .scene { position: absolute; inset: 0; pointer-events: none; z-index: 2; }
   .scene.on .interactive { pointer-events: auto; }
+  .split .w { display: inline-block; white-space: nowrap; }
   .split .ch { display: inline-block; white-space: pre; opacity: 0; filter: blur(14px); transform: translateY(.18em); transition: opacity .8s cubic-bezier(.2,.8,.2,1), filter .8s, transform .8s; transition-delay: calc(var(--i) * 24ms); }
   .scene.on .split .ch { opacity: 1; filter: blur(0); transform: none; }
   /* only the entrance waits for --d; the glass transitions stay immediate */
@@ -327,6 +328,7 @@
     .project-body > div, .card.wide .card-body { padding: 24px 20px 26px; }
     .project h3 { font-size: 34px; }
     .sec-head { margin-bottom: 40px; }
+    .sec-head h2 { font-size: min(46px, 12vw); } /* "Publications" still fits on one line at 320px */
     section { padding-top: 80px; }
   }
   @media (max-width: 760px) {
