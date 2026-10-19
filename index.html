@@ -338,7 +338,82 @@
     .pill { padding: 8px 13px; font-size: 12px; }
     .pill small { font-size: 10px; }
   }
+  /* paper sheet: clicking a publication card opens its links and headline results */
+  .card[data-paper] { cursor: pointer; }
+  .card[data-paper] .viz::after { content: "View results →"; position: absolute; right: 14px; bottom: 14px; z-index: 2; padding: 7px 13px; border-radius: 999px; font-size: 12px; font-weight: 600; color: #fff;
+    background: rgb(8 10 18 / .62); box-shadow: inset 0 0 0 1px rgb(255 255 255 / .16); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+    opacity: 0; translate: 0 6px; transition: opacity .3s var(--ease), translate .45s var(--spring); pointer-events: none; }
+  .card[data-paper]:hover .viz::after, .card[data-paper]:focus-within .viz::after { opacity: 1; translate: 0 0; }
+  .links a.go { color: #fff; text-shadow: 0 1px 1px rgb(0 20 80 / .35); --lg-fill: rgb(52 124 255 / .72); --lg-drop: 0 8px 22px -8px rgb(47 123 255 / .7); }
+  .links a.res::before { content: ""; display: inline-block; width: 6px; height: 6px; margin-right: 7px; vertical-align: 1px; border-radius: 50%; background: var(--a3); box-shadow: 0 0 8px var(--a3); }
+  html.sheet-open { overflow: hidden; }
+  dialog.sheet { padding: 0; border: 0; background: none; color: var(--text); width: min(980px, calc(100vw - 32px)); max-width: none; max-height: none; overflow: visible; }
+  dialog.sheet::backdrop { background: rgb(3 4 9 / .55); -webkit-backdrop-filter: blur(14px) saturate(1.3); backdrop-filter: blur(14px) saturate(1.3); opacity: 0; transition: opacity .35s var(--ease); }
+  dialog.sheet.in::backdrop { opacity: 1; }
+  .sheet-card { display: flex; flex-direction: column; max-height: calc(100vh - 48px); max-height: calc(100dvh - 48px); border-radius: 28px; overflow: hidden;
+    --lg-fill: rgb(13 15 26 / .74); --lg-blur: 30px; --lg-drop: 0 40px 90px -30px rgb(0 0 0 / .9);
+    opacity: 0; scale: .9; translate: 0 18px; filter: blur(6px); transform-origin: var(--ox, 50%) var(--oy, 50%);
+    transition: opacity .35s var(--ease), scale .7s var(--jelly), translate .6s var(--spring), filter .45s var(--ease), var(--lg-tr); }
+  .sheet.in .sheet-card { opacity: 1; scale: 1; translate: 0 0; filter: none; }
+  .sheet-scroll { overflow-y: auto; overscroll-behavior: contain; padding: 34px 38px 30px; }
+  .sheet-x { position: absolute; top: 16px; right: 16px; z-index: 7; width: 38px; height: 38px; border-radius: 50%; display: grid; place-items: center; color: #fff; font: 400 22px/1 var(--sans); --lg-fill: rgb(28 31 46 / .88); --lg-spot: 40px; }
+  .sheet-x:hover { scale: 1.08; }
+  .sheet h2 { margin: 14px 48px 8px 0; font-size: clamp(21px, 2.6vw, 28px); line-height: 1.3; letter-spacing: -.015em; font-weight: 600; }
+  .sheet .links { margin-top: 18px; }
+  .sh-label { display: flex; align-items: center; gap: 12px; margin: 34px 0 16px; font-size: 12px; font-weight: 650; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+  .sh-label::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+  .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; }
+  .kpi { position: relative; padding: 18px 20px 18px; border-radius: 18px; overflow: hidden; background: rgb(255 255 255 / .035); box-shadow: inset 0 0 0 1px rgb(255 255 255 / .07); }
+  .kpi::before { content: ""; position: absolute; left: 0; top: 0; height: 2px; width: 100%; background: var(--grad); transform-origin: left; scale: 0 1; transition: scale 1.1s var(--ease) var(--d, 0s); }
+  .sheet.go .kpi::before { scale: 1 1; }
+  .kpi b { display: block; font: 600 clamp(36px, 4.4vw, 48px)/1 var(--sans); letter-spacing: -.03em; color: #f4f6ff; text-shadow: 0 0 28px rgb(124 156 255 / .35); }
+  .kpi b small { font-size: .45em; font-weight: 600; letter-spacing: 0; margin-left: 4px; color: #c9d4ff; }
+  .kpi > span { display: block; margin-top: 10px; font-size: 13.5px; line-height: 1.45; color: #b9bfd0; }
+  .sh-tabs { position: relative; display: inline-flex; flex-wrap: wrap; gap: 2px; padding: 4px; margin-bottom: 18px; border-radius: 999px; background: rgb(255 255 255 / .05); box-shadow: inset 0 0 0 1px rgb(255 255 255 / .07); }
+  .sh-tabs button { position: relative; z-index: 1; border: 0; background: none; color: rgb(230 233 245 / .72); padding: 7px 14px; border-radius: 999px; font: 500 13px/1 var(--sans); cursor: pointer; transition: color .25s; }
+  .sh-tabs button[aria-pressed="true"] { color: #fff; }
+  .sh-tabs .lens { top: 4px; bottom: 4px; }
+  .gains { display: grid; gap: 4px; }
+  .g-row { display: grid; grid-template-columns: minmax(96px, 150px) 1fr 76px; align-items: center; gap: 16px; padding: 10px 12px; margin: 0 -12px; border-radius: 12px; transition: background .25s; }
+  .g-row:hover { background: rgb(255 255 255 / .04); }
+  .g-name { font-size: 14.5px; font-weight: 600; line-height: 1.25; }
+  .g-name small { display: block; margin-top: 3px; font: 500 11.5px/1.3 var(--mono); color: var(--dim); font-variant-numeric: tabular-nums; }
+  .g-track { position: relative; height: 14px; }
+  .g-track::before { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: var(--line); }
+  .g-zero { position: absolute; top: -5px; bottom: -5px; width: 1px; background: var(--line2); left: var(--z); }
+  .g-bar { position: absolute; top: 0; bottom: 0; left: var(--x); width: var(--w); border-radius: 0 4px 4px 0; background: var(--a1); box-shadow: 0 0 18px -2px rgb(124 156 255 / .55);
+    transform-origin: left; scale: 0 1; transition: scale 1s var(--spring) var(--d, 0s), left .5s var(--ease), width .5s var(--ease); overflow: hidden; }
+  .g-bar.neg { border-radius: 4px 0 0 4px; transform-origin: right; background: #6b7183; box-shadow: none; }
+  .g-bar::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, transparent, rgb(255 255 255 / .55), transparent); translate: -110% 0; }
+  .sheet.go .g-bar { scale: 1 1; }
+  .sheet.go .g-bar:not(.neg)::after { animation: gsweep 1.6s var(--ease) calc(var(--d, 0s) + .5s) both; }
+  @keyframes gsweep { to { translate: 110% 0; } }
+  .g-val { text-align: right; font: 600 17px/1 var(--sans); color: #f4f6ff; white-space: nowrap; }
+  .g-val.neg { color: var(--muted); }
+  .g-unit { margin: 10px 0 0; font-size: 12.5px; color: var(--dim); }
+  .sh-table { width: 100%; border-collapse: collapse; font-size: 13.5px; font-variant-numeric: tabular-nums; }
+  .sh-tablewrap { overflow-x: auto; margin: 0 -4px; padding: 0 4px; }
+  .sh-table th, .sh-table td { padding: 9px 10px; text-align: right; border-bottom: 1px solid var(--line); white-space: nowrap; }
+  .sh-table th:first-child, .sh-table td:first-child { text-align: left; }
+  .sh-table thead th { font-size: 12px; font-weight: 650; letter-spacing: .02em; color: var(--muted); }
+  .sh-table td.ds { font-weight: 600; color: var(--text); }
+  .sh-table td.ds small { display: block; font-weight: 500; color: var(--dim); font-size: 11.5px; }
+  .sh-table td b { display: block; color: #f4f6ff; font-weight: 600; }
+  .sh-table td span { display: block; color: var(--dim); font-size: 12px; }
+  .sh-table td em { display: block; font-style: normal; color: var(--dim); font-size: 11px; opacity: .75; }
+  .sh-note { margin: 16px 0 0; font-size: 12.5px; line-height: 1.55; color: var(--dim); }
+  @media (max-width: 640px) {
+    dialog.sheet { width: 100vw; margin: auto 0 0; }
+    .sheet-card { border-radius: 24px 24px 0 0; max-height: 92vh; max-height: 92dvh; }
+    .sheet-scroll { padding: 26px 16px 24px; }
+    .sheet-x { top: 12px; right: 12px; }
+    .g-row { grid-template-columns: 1fr 64px; gap: 6px 12px; }
+    .g-name { grid-column: 1 / -1; display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+    .g-name small { margin: 0; }
+  }
+
   @media (prefers-reduced-transparency: reduce) {
+    .sheet-card { --lg-fill: rgb(18 20 32 / .98); }
     :where(.navpill, .logo i, .nav-cta, .b-blue, .b-white, .btn, .glass, .tag, .pill, .links a, .feat li, .skill, .card, .project) { -webkit-backdrop-filter: none; backdrop-filter: none; }
     .glass, .pill, .navpill, .b-white { --lg-fill: rgb(22 25 36 / .95); }
     .ambient { display: none; }
@@ -475,76 +550,79 @@
 
       <div class="group-title reveal">Published &amp; accepted</div>
       <div class="grid">
-        <article class="card wide glow reveal">
+        <article class="card wide glow reveal" data-paper="vinci2">
           <div class="viz"><canvas data-scene="ego" aria-label="Animated sketch: a first-person kitchen view where an assistant offers help proactively"></canvas></div>
           <div class="card-body">
             <div class="badges"><span class="badge hl">ECCV 2026</span><span class="badge role">Co-first author</span></div>
             <h3>Vinci2: Providing Proactive Assistance in Continuous Egocentric Videos</h3>
             <p class="authors">Sitong Gong, <b>Tianyu Yan*</b>, Caixin Kang*, Bo Zheng, …, Yoichi Sato, Yifei Huang</p>
             <div class="also">From my visit to The University of Tokyo.</div>
+            <div class="links"><a href="https://arxiv.org/abs/2607.11523" target="_blank" rel="noopener">Paper</a><a href="https://github.com/SitongGong/EgoMemo" target="_blank" rel="noopener">Code</a><a class="res" href="#vinci2">Results</a></div>
           </div>
         </article>
 
-        <article class="card wide flip glow reveal">
+        <article class="card wide flip glow reveal" data-paper="hfpsam">
           <div class="viz"><canvas data-scene="hfpsam" aria-label="Animated walkthrough of HFP-SAM: wavelet frequency map, frequency guided adapters, frequency-aware point selection, Full-View Mamba refinement"></canvas></div>
           <div class="card-body">
             <div class="badges"><span class="badge">IEEE TIP 2026</span><span class="badge">CCF-A</span><span class="badge role">Student-first</span></div>
             <h3>HFP-SAM: Hierarchical Frequency Prompted SAM for Efficient Marine Animal Segmentation</h3>
             <p class="authors">Pingping Zhang, <b>Tianyu Yan</b>, Yuhao Wang, Yang Liu, et al.</p>
             <p class="method">A wavelet frequency prior steers a frozen SAM: <b>FGA</b> injects frequency masks into lightweight adapters, <b>FPS</b> turns high-frequency windows into point prompts, and <b>Full-View Mamba</b> refines the mask at linear cost.</p>
-            <div class="links"><a href="https://github.com/Drchip61/TIP-HFP-SAM" target="_blank" rel="noopener">Code</a></div>
+            <div class="links"><a href="https://arxiv.org/abs/2603.12708" target="_blank" rel="noopener">Paper</a><a href="https://github.com/Drchip61/TIP-HFP-SAM" target="_blank" rel="noopener">Code</a><a class="res" href="#hfpsam">Results</a></div>
           </div>
         </article>
 
-        <article class="card wide glow reveal">
+        <article class="card wide glow reveal" data-paper="dualsam">
           <div class="viz"><canvas data-scene="dualsam" aria-label="Animated walkthrough of Dual-SAM: original and gamma branches, multi-level coupled prompts, DFAM, mutual supervision, criss-cross connectivity prediction"></canvas></div>
           <div class="card-body">
             <div class="badges"><span class="badge hl">CVPR 2024 · Highlight</span><span class="badge">CCF-A</span><span class="badge role">Student-first</span></div>
             <h3>Fantastic Animals and Where to Find Them: Segment Any Marine Animal with Dual SAM</h3>
             <p class="authors">Pingping Zhang, <b>Tianyu Yan</b>, Yang Liu, Huchuan Lu</p>
             <p class="method">Two SAM branches see the original and a gamma-corrected image, linked by <b>multi-level coupled prompts</b>. <b>DFAM</b> fuses their features, the two decoders supervise each other with pseudo-labels, and <b>C3P</b> predicts each pixel's criss-cross connectivity instead of a plain mask.</p>
-            <div class="links"><a href="https://github.com/Drchip61/Dual_SAM" target="_blank" rel="noopener">Code</a></div>
+            <div class="links"><a href="https://openaccess.thecvf.com/content/CVPR2024/html/Zhang_Fantastic_Animals_and_Where_to_Find_Them_Segment_Any_Marine_CVPR_2024_paper.html" target="_blank" rel="noopener">Paper</a><a href="https://github.com/Drchip61/Dual_SAM" target="_blank" rel="noopener">Code</a><a class="res" href="#dualsam">Results</a></div>
           </div>
         </article>
 
-        <article class="card glow reveal">
+        <article class="card glow reveal" data-paper="massam">
           <div class="viz"><canvas data-scene="marine" data-variant="b" data-seed="8" aria-label="Animated sketch: multi-scale features and binary masks of marine animals"></canvas></div>
           <div class="card-body">
             <div class="badges"><span class="badge">IJCAI 2024</span><span class="badge">CCF-A</span><span class="badge role">First author</span></div>
             <h3>MAS-SAM: Segment Any Marine Animal with Aggregated Features</h3>
             <p class="authors"><b>Tianyu Yan</b>, Zifu Wan, Xinhao Deng, Pingping Zhang, Yang Liu, Huchuan Lu</p>
-            <div class="links"><a href="https://github.com/Drchip61/MAS-SAM" target="_blank" rel="noopener">Code</a></div>
+            <div class="links"><a href="https://www.ijcai.org/proceedings/2024/761" target="_blank" rel="noopener">Paper</a><a href="https://github.com/Drchip61/MAS-SAM" target="_blank" rel="noopener">Code</a><a class="res" href="#massam">Results</a></div>
           </div>
         </article>
 
-        <article class="card glow reveal">
+        <article class="card glow reveal" data-paper="transynet">
           <div class="viz"><canvas data-scene="change" data-variant="wipe" data-seed="4" aria-label="Animated sketch: before and after aerial images with a change map"></canvas></div>
           <div class="card-body">
             <div class="badges"><span class="badge">IEEE TGRS 2023</span><span class="badge">JCR Q1</span><span class="badge role">First author</span></div>
             <h3>TransY-Net: Learning Fully Transformer Networks for Change Detection of Remote Sensing Images</h3>
             <p class="authors"><b>Tianyu Yan</b>, Zifu Wan, Pingping Zhang, Gong Cheng, Huchuan Lu</p>
             <div class="also">Conference version: <b>Fully Transformer Network for Change Detection of Remote Sensing Images</b> · ACCV 2022 · <b>Tianyu Yan</b>, Zifu Wan, Pingping Zhang</div>
-            <div class="links"><a href="https://github.com/Drchip61/TransYNet" target="_blank" rel="noopener">Code</a></div>
+            <div class="links"><a href="https://arxiv.org/abs/2310.14214" target="_blank" rel="noopener">Paper</a><a href="https://github.com/Drchip61/TransYNet" target="_blank" rel="noopener">Code</a><a class="res" href="#transynet">Results</a></div>
           </div>
         </article>
       </div>
 
       <div class="group-title reveal">Also co-authored</div>
       <div class="grid">
-        <article class="card glow reveal">
+        <article class="card glow reveal" data-paper="mambapro">
           <div class="viz"><canvas data-scene="reid" aria-label="Animated sketch: RGB, NIR and thermal views fused to re-identify a person"></canvas></div>
           <div class="card-body">
             <div class="badges"><span class="badge">AAAI 2025</span><span class="badge">CCF-A</span></div>
             <h3>MambaPro: Multi-Modal Object Re-identification with Mamba Aggregation and Synergistic Prompt</h3>
             <p class="authors">Yuhao Wang, Xuehu Liu, <b>Tianyu Yan</b>, Yang Liu, Aihua Zheng, Pingping Zhang, Huchuan Lu</p>
+            <div class="links"><a href="https://arxiv.org/abs/2412.10707" target="_blank" rel="noopener">Paper</a><a href="https://github.com/924973292/MambaPro" target="_blank" rel="noopener">Code</a><a class="res" href="#mambapro">Results</a></div>
           </div>
         </article>
-        <article class="card glow reveal">
+        <article class="card glow reveal" data-paper="mdsam">
           <div class="viz"><canvas data-scene="sod" aria-label="Animated sketch: a butterfly becomes a saliency map"></canvas></div>
           <div class="card-body">
             <div class="badges"><span class="badge">ACM MM 2024</span><span class="badge">CCF-A</span></div>
             <h3>Multi-Scale and Detail-Enhanced Segment Anything Model for Salient Object Detection</h3>
             <p class="authors">Shixuan Gao, Pingping Zhang, <b>Tianyu Yan</b>, Huchuan Lu</p>
+            <div class="links"><a href="https://arxiv.org/abs/2408.04326" target="_blank" rel="noopener">Paper</a><a href="https://github.com/BellyBeauty/MDSAM" target="_blank" rel="noopener">Code</a><a class="res" href="#mdsam">Results</a></div>
           </div>
         </article>
       </div>
@@ -640,6 +718,14 @@
 <footer>
   <div class="wrap"><span>© 2026 Tianyu Yan</span><span>Last updated October 2026</span></div>
 </footer>
+
+<!-- Paper sheet: filled from js/papers.js when a publication card is opened -->
+<dialog class="sheet" id="sheet" aria-labelledby="sheet-title">
+  <div class="sheet-card glass glow">
+    <button class="sheet-x glass" type="button" aria-label="Close">×</button>
+    <div class="sheet-scroll"></div>
+  </div>
+</dialog>
 
 <script src="js/visuals.js"></script>
 <script src="js/stage.js"></script>
@@ -829,7 +915,7 @@
     document.documentElement.classList.add('has-cursor');
     addEventListener('pointermove', e => { tx = e.clientX; ty = e.clientY; cur.classList.add('on'); }, { passive: true });
     document.addEventListener('pointerleave', () => cur.classList.remove('on'));
-    document.addEventListener('pointerover', e => cur.classList.toggle('hover', !!e.target.closest('a, button')));
+    document.addEventListener('pointerover', e => cur.classList.toggle('hover', !!e.target.closest('a, button, .card[data-paper]')));
     (function move() { x += (tx - x) * 0.25; y += (ty - y) * 0.25; cur.style.transform = `translate(${x}px, ${y}px)`; requestAnimationFrame(move); })();
   }
 
@@ -856,5 +942,6 @@
     setTimeout(tick, 2600);
   })();
 </script>
+<script src="js/papers.js"></script>
 </body>
 </html>
