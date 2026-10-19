@@ -1,11 +1,860 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
+<!doctype html>
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Tianyu Yan</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tianyu Yan</title>
+<meta name="description" content="Tianyu Yan — AI companions, AI narrative societies, and segmentation with foundation models.">
+<link rel="canonical" href="https://tianyu-yan.vip/">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%2306070b'/%3E%3Crect x='.75' y='.75' width='30.5' height='30.5' rx='8.25' fill='none' stroke='%237c9cff' stroke-opacity='.7' stroke-width='1.5'/%3E%3Ctext x='16' y='20.5' text-anchor='middle' font-family='Menlo,monospace' font-size='12' font-weight='600' fill='%23e9eaf0'%3ETY%3C/text%3E%3C/svg%3E">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://tianyu-yan.vip/">
+<meta property="og:title" content="Tianyu Yan">
+<meta property="og:description" content="Ph.D. student at Dalian University of Technology. AI companions, AI narrative societies, and segmentation with foundation models.">
+<meta property="og:image" content="https://tianyu-yan.vip/assets/photo.jpg">
+<meta name="twitter:card" content="summary">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" media="print" onload="this.media='all'">
+<style>
+  :root {
+    --bg: #06070b;
+    --bg2: #0c0e16;
+    --text: #e9eaf0;
+    --muted: #9aa0b0;
+    --dim: #686e80;
+    --line: rgba(255,255,255,.08);
+    --line2: rgba(255,255,255,.15);
+    --a1: #7c9cff;
+    --a2: #c084fc;
+    --a3: #5eead4;
+    --grad: linear-gradient(100deg, var(--a1), var(--a2) 50%, var(--a3));
+    --sans: "Geist", -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    --mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    --ease: cubic-bezier(.2,.8,.2,1);
+    --spring: cubic-bezier(.3,1.45,.5,1);
+    --jelly: cubic-bezier(.3,1.6,.45,1);
+    /* liquid glass. Like iOS it is almost clear: a faint wash, a backdrop that is brightened
+       and saturated rather than darkened, light caught in the glass thickness, and a crisp
+       specular rim whose bright side follows the light direction --la. */
+    --lg-fill: rgb(255 255 255 / .035);
+    --lg-lift: brightness(1.14) saturate(1.9);
+    --lg-blur: 3px;
+    --lg-rim: linear-gradient(var(--la), rgb(255 255 255 / .8), rgb(255 255 255 / .18) 16%, rgb(255 255 255 / .05) 38%, rgb(255 255 255 / .05) 62%, rgb(255 255 255 / .22) 84%, rgb(255 255 255 / .6));
+    --lg-rim-soft: linear-gradient(var(--la), rgb(255 255 255 / .5), rgb(255 255 255 / .1) 14%, rgb(255 255 255 / .03) 40%, rgb(255 255 255 / .03) 60%, rgb(255 255 255 / .12) 86%, rgb(255 255 255 / .38));
+    --lg-inner: inset 0 0 16px rgb(255 255 255 / .06), inset 0 1px 2px rgb(255 255 255 / .12);
+    --lg-drop: 0 14px 34px -16px rgb(0 0 0 / .55);
+    --lg-hl: 255 255 255;
+    --lg-tr: --lh .35s var(--ease), --lk .6s var(--ease), scale .7s var(--jelly), translate .6s var(--spring), box-shadow .35s var(--ease);
+    color-scheme: dark;
+  }
+  @supports (transition-timing-function: linear(0, 1)) {
+    :root { --spring: linear(0, 0.047, 0.163, 0.318, 0.487, 0.65, 0.795, 0.914, 1.005, 1.068, 1.107, 1.124, 1.125, 1.115, 1.098, 1.077, 1.056, 1.036, 1.019, 1.006, 0.996, 0.989, 0.985, 0.984, 0.985, 0.986, 0.989, 0.991, 0.994, 0.996, 0.998, 1, 1.001, 1.002, 1.002, 1.001, 1);
+            --jelly: linear(0, 0.063, 0.22, 0.428, 0.648, 0.851, 1.016, 1.135, 1.206, 1.233, 1.225, 1.192, 1.145, 1.094, 1.045, 1.004, 0.974, 0.955, 0.946, 0.946, 0.953, 0.963, 0.975, 0.987, 0.997, 1.005, 1.01, 1.012, 1.013, 1.011, 1.009, 1.006, 1.004, 1.001, 0.999, 0.998, 0.997, 0.997, 0.997, 0.998, 1); }
+  }
+  /* light direction for every rim; the script tilts it with the pointer (or with scrolling on touch) */
+  @property --la { syntax: "<angle>"; inherits: true; initial-value: 135deg; }
+  :root { transition: --la .8s var(--ease); }
+  /* pointer light: --lx/--ly follow the pointer, --lh is its brightness, --lk its size */
+  @property --lx { syntax: "<length-percentage>"; inherits: true; initial-value: 50%; }
+  @property --ly { syntax: "<length-percentage>"; inherits: true; initial-value: 0%; }
+  @property --lh { syntax: "<number>"; inherits: true; initial-value: 0; }
+  @property --lk { syntax: "<number>"; inherits: true; initial-value: .6; }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text); overflow-x: hidden;
+    font: 16px/1.6 var(--sans);
+    -webkit-font-smoothing: antialiased;
+  }
+  body::after { /* film grain */
+    content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 50; opacity: .045;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  }
+  .spot { position: fixed; inset: 0; pointer-events: none; z-index: 0;
+    background: radial-gradient(640px circle at var(--x, 50%) var(--y, 20%), rgba(124,156,255,.07), transparent 45%); }
+  /* ambient light behind the content: slow-drifting colour and sparse stars. The page scrolls
+     over it, so the glass always has something moving behind it to bend, blur and brighten. */
+  .ambient { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+  .ambient::before { content: ""; position: absolute; inset: 0; opacity: .7; background: var(--stars, none) 0 0 / 720px 720px; } /* tile drawn by the script */
+  .ambient i { position: absolute; width: 62vmax; height: 62vmax; border-radius: 50%; background: radial-gradient(closest-side, var(--c), transparent); animation: drift var(--t) ease-in-out infinite alternate; }
+  .ambient i:nth-child(1) { --c: rgb(80 110 255 / .3); --t: 34s; left: -18vmax; top: -10vmax; }
+  .ambient i:nth-child(2) { --c: rgb(170 90 255 / .24); --t: 41s; right: -22vmax; top: 18vh; animation-delay: -12s; }
+  .ambient i:nth-child(3) { --c: rgb(40 210 190 / .17); --t: 47s; left: 18vw; bottom: -30vmax; animation-delay: -25s; }
+  @keyframes drift { to { translate: 14vw 12vh; scale: 1.2; } }
+  a { color: inherit; text-decoration: none; }
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 0 28px; position: relative; z-index: 1; }
+
+  /* ---------- liquid glass ----------
+     Every button and box shares one material: a faint fill, a pointer-following light,
+     a specular rim (::after) and inner light. Components only change the --lg-* variables.
+     Small controls are clear (little blur); panels with text are frosted (--lg-blur ~20px).
+     In desktop Chromium the script at the bottom adds edge refraction through --lg-refract. */
+  :where(.navpill, .lens, .nav-cta, .logo i, .b-blue, .b-white, .btn, .glass, .tag, .pill, .links a, .feat li, .skill, .card, .project) {
+    --lh: 0; --lk: .6; --lg-spot: 110px;
+    position: relative; border: 0;
+    background: radial-gradient(circle calc(var(--lg-spot) * var(--lk)) at var(--lx) var(--ly), rgb(var(--lg-hl) / var(--lh)), rgb(var(--lg-hl) / 0)), var(--lg-fill);
+    box-shadow: var(--lg-inner), var(--lg-drop);
+    transition: var(--lg-tr);
+  }
+  :where(.navpill, .lens, .nav-cta, .logo i, .b-blue, .b-white, .btn, .glass, .tag, .pill, .links a, .feat li, .skill, .card, .project)::after {
+    content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 1px; pointer-events: none;
+    background: radial-gradient(circle calc(var(--lg-spot) * var(--lk) * 1.3) at var(--lx) var(--ly), rgb(var(--lg-hl) / calc(var(--lh) * 3.5)), rgb(var(--lg-hl) / 0)), var(--lg-rim);
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude;
+  }
+  :where(.navpill, .logo i, .nav-cta, .b-blue, .b-white, .btn, .glass, .tag, .pill, .links a, .feat li, .skill, .card, .project) {
+    -webkit-backdrop-filter: blur(var(--lg-blur)) var(--lg-lift);
+    backdrop-filter: blur(var(--lg-blur)) var(--lg-refract,) var(--lg-lift);
+  }
+  @media (hover: hover) {
+    :where(.navpill, .nav-cta, .logo i, .b-blue, .b-white, .btn, .glass, .tag, .links a, .feat li, .skill, .card, .project):hover { --lh: .1; --lk: 1; }
+  }
+  /* pressed: the glass swells like a drop of jelly, lights up under the finger, then wobbles back */
+  .is-press { --lh: .3; --lk: 1.5; scale: calc(var(--lg-press, 1.1) + var(--sx, 0)) calc(var(--lg-press, 1.1) + var(--sy, 0)); }
+  .lens { position: absolute; z-index: 0; left: 0; opacity: 0; scale: .7; pointer-events: none; border-radius: 999px;
+    --lg-fill: rgb(255 255 255 / .13); --lg-drop: 0 4px 14px -4px rgb(0 0 0 / .5);
+    transition: left .55s var(--spring), right .55s var(--spring), opacity .3s, scale .6s var(--jelly); }
+  .lens.on { opacity: 1; scale: 1; }
+  .lens.on.is-press { scale: 1.14 1.22; }
+
+  /* nav: logo, centred glass pill, blue call to action; a soft blur fades in under it once scrolled */
+  nav.top { position: fixed; top: 0; left: 0; right: 0; z-index: 40; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 16px 4vw; transition: padding .3s; }
+  nav.top::before { content: ""; position: absolute; inset: 0 0 -32px; z-index: -1; pointer-events: none; opacity: 0; transition: opacity .4s;
+    background: linear-gradient(rgb(4 5 10 / .78), rgb(4 5 10 / .4) 55%, rgb(4 5 10 / 0));
+    -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
+    -webkit-mask: linear-gradient(#000 50%, transparent); mask: linear-gradient(#000 50%, transparent); }
+  nav.top.scrolled { padding-top: 10px; padding-bottom: 10px; }
+  nav.top.scrolled::before { opacity: 1; }
+  .logo { display: flex; align-items: center; gap: 10px; font: 500 15px/1 var(--mono); letter-spacing: -.01em; }
+  .logo i { width: 30px; height: 30px; border-radius: 9px; display: grid; place-items: center; font: 600 11px/1 var(--mono); font-style: normal; --lg-spot: 40px; }
+  .navpill { position: absolute; left: 50%; transform: translateX(-50%); display: flex; gap: 2px; padding: 5px; border-radius: 999px; --lg-spot: 150px; --lg-fill: rgb(255 255 255 / .05); }
+  .navpill .lens { top: 5px; bottom: 5px; }
+  .navpill a { position: relative; z-index: 1; padding: 8px 16px; border-radius: 999px; font-size: 14px; font-weight: 500; color: rgb(230 233 245 / .8); transition: color .25s; }
+  .navpill a:hover, .navpill a.on { color: #fff; }
+  .nav-cta { padding: 10px 18px; border-radius: 999px; color: #fff; font-size: 14px; font-weight: 600; text-shadow: 0 1px 1px rgb(0 20 80 / .35);
+    --lg-fill: rgb(52 124 255 / .78); --lg-drop: 0 8px 26px -8px rgb(47 123 255 / .7); }
+  .nav-cta:hover { scale: 1.04; --lg-drop: 0 10px 32px -6px rgb(47 123 255 / .85); }
+
+  /* custom cursor */
+  .cursor { position: fixed; left: 0; top: 0; z-index: 100; width: 26px; height: 26px; margin: -13px 0 0 -13px; border-radius: 50%; border: 1.5px solid #fff; pointer-events: none; opacity: 0; mix-blend-mode: difference; transition: opacity .3s, width .25s, height .25s, margin .25s, background .25s; }
+  .cursor::after { content: ""; position: absolute; left: 50%; top: 50%; width: 7px; height: 7px; margin: -3.5px 0 0 -3.5px; border-radius: 50%; background: #fff; }
+  .cursor.on { opacity: 1; }
+  .cursor.hover { width: 46px; height: 46px; margin: -23px 0 0 -23px; background: rgba(255,255,255,.12); }
+  html.has-cursor, html.has-cursor * { cursor: none !important; }
+
+  /* the scroll-driven particle stage */
+  .story { position: relative; height: 340vh; padding: 0; }
+  .story::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 28vh; background: linear-gradient(transparent, var(--bg)); pointer-events: none; z-index: 3; }
+  .stage { position: sticky; top: 0; height: 100vh; height: 100svh; overflow: hidden; background: #02030a; }
+  .stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  .stage canvas[hidden] { display: none; }
+  .glass { --lg-blur: 7px; --lg-drop: 0 18px 44px -18px rgb(0 0 0 / .7); }
+  .pills { position: absolute; inset: 0; pointer-events: none; }
+  .pill { position: absolute; left: 0; top: 0; padding: 16px 28px; border-radius: 999px; white-space: nowrap; font: 500 16px/1 var(--sans); color: #e8ecff; opacity: 0; will-change: transform, opacity; --lg-blur: 1.5px; }
+  .pill b { font-weight: 700; letter-spacing: .02em; }
+  .pill small { font-size: 12px; color: #9fb4ff; margin-left: 6px; font-weight: 600; }
+  .scene { position: absolute; inset: 0; pointer-events: none; z-index: 2; }
+  .scene.on .interactive { pointer-events: auto; }
+  .split .ch { display: inline-block; white-space: pre; opacity: 0; filter: blur(14px); transform: translateY(.18em); transition: opacity .8s cubic-bezier(.2,.8,.2,1), filter .8s, transform .8s; transition-delay: calc(var(--i) * 24ms); }
+  .scene.on .split .ch { opacity: 1; filter: blur(0); transform: none; }
+  /* only the entrance waits for --d; the glass transitions stay immediate */
+  .fadeup { opacity: 0; filter: blur(8px); transform: translateY(16px); transition: opacity .8s var(--ease), filter .8s var(--ease), transform .8s var(--ease), var(--lg-tr); }
+  .scene.on .fadeup { opacity: 1; filter: none; transform: none; transition: opacity .8s var(--ease) var(--d, 0s), filter .8s var(--ease) var(--d, 0s), transform .8s var(--ease) var(--d, 0s), var(--lg-tr); }
+  .tag { display: inline-flex; align-items: center; gap: 9px; font: 600 11.5px/1 var(--sans); letter-spacing: .08em; text-transform: uppercase; color: #dfe6ff; padding: 10px 15px; border-radius: 999px; --lg-blur: 4px; --lg-hl: 170 195 255;
+    --lg-fill: rgb(70 110 255 / .2); --lg-drop: 0 8px 24px -12px rgb(40 80 255 / .5); }
+  .tag::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: #3b82f6; box-shadow: 0 0 10px #3b82f6; }
+  .s1-left { position: absolute; left: 4vw; bottom: 9vh; max-width: 62vw; }
+  .s1 h1 { font: 400 clamp(54px, 8.4vw, 128px)/.95 var(--mono); letter-spacing: -.05em; margin: 22px 0 0; color: #f4f6ff; }
+  .typed { font: 400 clamp(18px, 2.2vw, 30px)/1.3 var(--mono); color: #c9d4ff; margin: 18px 0 0; min-height: 1.3em; }
+  .rotator { background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .caret { display: inline-block; width: 2px; height: 1em; background: var(--a2); vertical-align: -.12em; margin-left: 3px; animation: blink 1s steps(1) infinite; }
+  @keyframes blink { 50% { opacity: .35; } }
+  .s1-right { position: absolute; right: 4vw; bottom: 9vh; width: min(340px, 30vw); }
+  .s1-right p { font-size: 14px; line-height: 1.6; color: #c3c8d8; margin: 0 0 18px; }
+  .row { display: flex; flex-wrap: wrap; gap: 10px; }
+  .b-blue, .b-white { padding: 12px 21px; border-radius: 999px; font-size: 14px; font-weight: 600; }
+  .b-blue { color: #fff; text-shadow: 0 1px 1px rgb(0 20 80 / .35); --lg-fill: rgb(52 124 255 / .78); --lg-drop: 0 8px 26px -8px rgb(47 123 255 / .7); }
+  .b-white { color: #fff; text-shadow: 0 1px 2px rgb(0 0 0 / .4); --lg-fill: rgb(255 255 255 / .1); }
+  .btn.primary { color: #0a0a12; --lg-hl: 150 180 255; --lg-fill: rgb(255 255 255 / .8); --lg-blur: 6px;
+    --lg-rim: linear-gradient(var(--la), #fff, rgb(255 255 255 / .4) 30%, rgb(255 255 255 / .2) 60%, #fff); --lg-inner: inset 0 -8px 16px -10px rgb(120 140 220 / .45), inset 0 1px 0 #fff; }
+  .b-blue:hover, .b-white:hover { scale: 1.04; }
+  .b-blue:hover { --lg-drop: 0 12px 32px -6px rgb(47 123 255 / .85); }
+  .idcard { position: absolute; right: 4vw; top: 96px; display: flex; gap: 12px; align-items: center; padding: 10px 16px 10px 10px; border-radius: 18px; --lg-spot: 150px; --lg-press: 1.06; }
+  .idcard img { width: 46px; height: 46px; border-radius: 11px; object-fit: cover; box-shadow: 0 0 0 1px rgb(255 255 255 / .15); }
+  .idcard b { display: block; font-size: 14px; } .idcard em { display: block; font-style: normal; font-size: 12px; color: #aab3cc; margin-top: 2px; }
+  .hint { position: absolute; left: 50%; bottom: 3.5vh; transform: translateX(-50%); font: 500 11px/1 var(--mono); letter-spacing: .3em; text-transform: uppercase; color: rgba(255,255,255,.6); text-align: center; }
+  .hint::after { content: ""; display: block; width: 1px; height: 34px; margin: 10px auto 0; background: linear-gradient(#fff, transparent); transform-origin: top; animation: hint 1.8s ease-in-out infinite; }
+  @keyframes hint { 0% { transform: scaleY(0); } 50% { transform: scaleY(1); } 100% { transform: scaleY(1); opacity: 0; } }
+  .s2-cap { position: absolute; left: 4vw; top: 16vh; max-width: 34vw; }
+  .s2-cap .big { font: 400 clamp(34px, 4.4vw, 64px)/1 var(--mono); letter-spacing: -.04em; color: #f4f6ff; margin: 18px 0 10px; }
+  .s2-cap .small { font-size: 14px; line-height: 1.5; color: #b8c0d6; margin: 0; }
+  .s3 h2 { position: absolute; left: 4vw; top: 13vh; margin: 0; font: 400 clamp(44px, 6vw, 92px)/.98 var(--mono); letter-spacing: -.05em; color: #f4f6ff; }
+  .s3-note { position: absolute; right: 4vw; top: 15vh; width: min(320px, 28vw); font-size: 14px; line-height: 1.6; color: #c3c8d8; margin: 0; }
+  .cards4 { position: absolute; left: 4vw; right: 4vw; bottom: 5vh; display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+  .rcard { position: relative; display: flex; flex-direction: column; justify-content: flex-end; min-height: 200px; padding: 22px; border-radius: 22px; --lg-spot: 260px; --lg-press: .96; --lg-hl: 190 205 255; }
+  .rcard:hover { translate: 0 -4px; }
+  .rcard .no { position: absolute; top: 18px; right: 20px; font: 500 15px/1 var(--mono); color: #cfd6f5; }
+  .rcard h3 { margin: 0 0 8px; font-size: 17px; font-weight: 600; letter-spacing: -.01em; }
+  .rcard p { margin: 0; font-size: 13px; line-height: 1.5; color: #aeb6cc; }
+  .grad { background: var(--grad); background-size: 200% 100%; -webkit-background-clip: text; background-clip: text; color: transparent; animation: sheen 9s linear infinite; }
+  @keyframes sheen { to { background-position: -200% 0; } }
+  .btn { display: inline-flex; align-items: center; gap: 8px; padding: 12px 22px; border-radius: 999px; font-size: 14.5px; font-weight: 550; --lg-spot: 140px; }
+  .btn:hover { scale: 1.04; }
+  .btn.primary { --lg-drop: 0 10px 34px -10px rgb(160 180 255 / .45); }
+
+  /* sections */
+  section { padding: 110px 0 20px; position: relative; }
+  .sec-head { display: grid; grid-template-columns: auto 1fr; gap: 6px 22px; align-items: baseline; margin-bottom: 44px; }
+  .sec-head .num { font: 600 14px/1 ui-monospace, "SF Mono", Menlo, monospace; background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .sec-head h2 { margin: 0; font: 400 clamp(34px, 4.6vw, 56px)/1.05 var(--mono); letter-spacing: -.045em; }
+  .sec-head p { grid-column: 2; margin: 8px 0 0; color: var(--muted); max-width: 640px; }
+
+  /* large glass boxes: a quieter fill and rim, a wide bluish pointer light */
+  .glow { --lg-spot: 420px; --lg-hl: 175 190 255; --lg-blur: 22px; --lg-rim: var(--lg-rim-soft); --lg-fill: rgb(255 255 255 / .03); --lg-drop: 0 24px 60px -28px rgb(0 0 0 / .9); }
+  .glow::after { z-index: 6; }
+  @media (hover: hover) { .glow:hover { --lh: .09; } }
+
+  /* featured projects: media on top, name on the left, description and stack on the right */
+  .project { border-radius: 28px; overflow: hidden; margin-bottom: 48px; }
+  .media { position: relative; aspect-ratio: 16 / 8.2; background: #000; overflow: hidden; }
+  .media video, .media canvas { width: 100%; height: 100%; display: block; }
+  .media video { object-fit: cover; }
+  .project-body { display: grid; grid-template-columns: .85fr 1.15fr; }
+  .project-body > div { padding: 34px 38px 38px; }
+  .project-body > div + div { border-left: 1px solid var(--line); }
+  .kind { display: inline-flex; align-items: center; gap: 7px; font-size: 11.5px; font-weight: 650; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+  .kind::before { content: ""; width: 18px; height: 2px; border-radius: 2px; background: var(--grad); }
+  .project h3 { margin: 12px 0 4px; font-size: 30px; letter-spacing: -.02em; line-height: 1.15; }
+  .project h3 + .sub { color: var(--muted); font-size: 15.5px; margin: 0; line-height: 1.45; }
+  .project p.desc { margin: 0 0 18px; font-size: 15.5px; color: #c9ccd6; }
+  .feat { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; padding: 0; list-style: none; }
+  .feat li { font-size: 13px; padding: 5px 12px; border-radius: 999px; color: #c9ccd6; --lg-spot: 70px; --lg-blur: 6px; --lg-fill: rgb(255 255 255 / .05); --lg-drop: 0 4px 10px -6px rgb(0 0 0 / .6); }
+  .links { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+  .links a { font-size: 13px; padding: 6px 14px; border-radius: 999px; color: #e2e5ee; --lg-spot: 70px; --lg-press: 1.14; --lg-blur: 4px; --lg-fill: rgb(255 255 255 / .06); --lg-drop: 0 6px 16px -8px rgb(0 0 0 / .7); }
+  .links a:hover { translate: 0 -1px; }
+  .links a.todo { border: 1px dashed var(--line2); color: var(--dim); --lg-fill: transparent; box-shadow: none; }
+  .links a.todo::after { content: none; }
+
+  /* publication cards */
+  .note { font-size: 13px; color: var(--dim); margin: -26px 0 30px; }
+  .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; }
+  .card { border-radius: 24px; overflow: hidden; }
+  .card:hover { translate: 0 -5px; }
+  .card.wide { grid-column: span 2; display: grid; grid-template-columns: 1.35fr 1fr; }
+  .viz { position: relative; aspect-ratio: 16 / 10; background: #000; overflow: hidden; }
+  .card.wide .viz { aspect-ratio: auto; min-height: 340px; }
+  .card.wide.flip { grid-template-columns: 1fr 1.35fr; }
+  .card.wide.flip .viz { order: 2; }
+  .card p.method { margin: 12px 0 0; font-size: 14px; line-height: 1.55; color: #c4c8d2; }
+  .card p.method b { color: #e9eaf0; font-weight: 600; }
+  .viz canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  .card-body { padding: 22px 24px 24px; display: flex; flex-direction: column; }
+  .card.wide .card-body { padding: 34px 36px; justify-content: center; }
+  .badges { display: flex; flex-wrap: wrap; gap: 6px; }
+  .badge { font-size: 12px; font-weight: 600; padding: 3px 9px; border-radius: 8px; background: rgba(255,255,255,.07); color: #d6d9e2; box-shadow: inset 0 1px 0 rgb(255 255 255 / .1), inset 0 0 0 1px rgb(255 255 255 / .04); }
+  .badge.hl { background: linear-gradient(100deg, rgba(251,146,60,.25), rgba(244,114,182,.25)); color: #ffd7b8; border: 1px solid rgba(251,146,60,.35); }
+  .card h3 { margin: 14px 0 8px; font-size: 18px; line-height: 1.38; letter-spacing: -.01em; }
+  .card.wide h3 { font-size: 24px; }
+  .authors { font-size: 14px; color: var(--muted); margin: 0; }
+  .authors b { color: var(--text); font-weight: 600; }
+  .also { margin-top: 14px; padding-top: 14px; border-top: 1px dashed var(--line2); font-size: 13.5px; color: var(--muted); }
+  .also b { color: #d6d9e2; font-weight: 600; }
+  .card p.desc { margin: 0; font-size: 14.5px; color: #c4c8d2; }
+
+  /* hero stats, publication groups, experience */
+  .group-title { display: flex; align-items: center; gap: 14px; margin: 56px 0 22px; font-size: 13px; font-weight: 650; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+  .note + .group-title { margin-top: 0; }
+  .group-title::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+  .badge.role { background: rgba(124,156,255,.15); color: #c7d3ff; }
+  .exp { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; }
+  .exp h3 { font-size: 13px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); margin: 0 0 24px; font-weight: 650; }
+  .timeline p { margin: 6px 0 0; color: #c4c8d2; font-size: 14.5px; max-width: 460px; }
+  .skills { margin-top: 40px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+  .skill { border-radius: 18px; padding: 16px 18px; --lg-spot: 200px; --lg-blur: 20px; --lg-rim: var(--lg-rim-soft); --lg-fill: rgb(255 255 255 / .04); --lg-drop: 0 14px 30px -18px rgb(0 0 0 / .8); }
+  .skill b { display: block; font-size: 11.5px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; font-weight: 650; }
+  .skill span { font-size: 14.5px; color: #d6d9e2; }
+  @media (max-width: 900px) { .exp { grid-template-columns: 1fr; } .skills { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 640px) { .skills { grid-template-columns: 1fr; } }
+
+  /* awards */
+  .timeline { list-style: none; margin: 0; padding: 0 0 0 26px; position: relative; }
+  .timeline::before { content: ""; position: absolute; left: 6px; top: 8px; bottom: 8px; width: 1px; background: linear-gradient(var(--a1), var(--a2), transparent); }
+  .timeline li { position: relative; padding: 0 0 30px; }
+  .timeline li::before { content: ""; position: absolute; left: -25px; top: 7px; width: 11px; height: 11px; border-radius: 50%; background: var(--bg); border: 2px solid var(--a1); box-shadow: 0 0 12px rgba(124,156,255,.6); }
+  .timeline time { font: 600 13px/1 ui-monospace, "SF Mono", Menlo, monospace; color: var(--dim); }
+  .timeline div { font-size: 18px; font-weight: 600; margin-top: 6px; letter-spacing: -.01em; }
+  .timeline span { color: var(--muted); font-size: 14px; }
+
+  /* contact */
+  .contact { text-align: center; padding-top: 130px; padding-bottom: 90px; }
+  .contact h2 { font-size: clamp(40px, 7vw, 84px); letter-spacing: -.045em; margin: 0 0 18px; line-height: 1; }
+  .contact p { color: var(--muted); margin: 0 0 30px; }
+  footer { border-top: 1px solid var(--line); color: var(--dim); font-size: 13px; padding: 28px 0 40px; }
+  footer .wrap { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+
+  /* reveal on scroll */
+  .reveal { opacity: 0; transform: translateY(28px); transition: opacity .9s var(--ease), transform .9s var(--ease), var(--lg-tr); }
+  .reveal.in { opacity: 1; transform: none; }
+
+  @media (max-width: 900px) {
+    .project-body, .card.wide { grid-template-columns: 1fr; }
+    .project-body > div + div { border-left: 0; border-top: 1px solid var(--line); }
+    .card.wide .viz { min-height: 0; aspect-ratio: 16 / 10; }
+    .card.wide.flip { grid-template-columns: 1fr; }
+    .card.wide.flip .viz { order: 0; }
+    .media { aspect-ratio: 4 / 3; }
+  }
+  @media (max-width: 640px) {
+    .wrap { padding-left: 16px; padding-right: 16px; }
+    .grid { grid-template-columns: 1fr; }
+    .card.wide { grid-column: auto; }
+    .project-body > div, .card.wide .card-body { padding: 24px 20px 26px; }
+    .project h3 { font-size: 25px; }
+    .sec-head { grid-template-columns: 1fr; }
+    .sec-head p { grid-column: 1; }
+    section { padding-top: 80px; }
+  }
+  @media (max-width: 760px) {
+    nav.top { padding: 12px 16px; }
+    .navpill { display: none; }
+    .nav-cta { padding: 8px 14px; font-size: 13px; }
+    .s1-left { left: 16px; right: 16px; bottom: 36vh; max-width: none; }
+    .s1 h1 { font-size: 50px; }
+    .typed { font-size: 17px; min-height: 2.6em; }
+    .s1-right { left: 16px; right: 16px; width: auto; bottom: 5vh; }
+    .s1-right p { font-size: 13px; }
+    .idcard { top: 68px; right: 16px; padding: 7px 12px 7px 7px; }
+    .idcard img { width: 34px; height: 34px; }
+    .hint { display: none; }
+    .s2-cap { left: 16px; right: 16px; top: 12vh; max-width: none; }
+    .s2-cap .big { font-size: 38px; }
+    .s3 h2 { left: 16px; top: 11vh; font-size: 40px; }
+    .s3-note { display: none; }
+    .cards4 { left: 16px; right: 16px; bottom: 4vh; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .rcard { min-height: 0; padding: 14px; border-radius: 16px; }
+    .rcard h3 { font-size: 14px; margin: 20px 0 0; }
+    .rcard p { display: none; }
+    .rcard .no { top: 12px; right: 14px; font-size: 12px; }
+    .pill { padding: 8px 13px; font-size: 12px; }
+    .pill small { font-size: 10px; }
+  }
+  @media (prefers-reduced-transparency: reduce) {
+    :where(.navpill, .logo i, .nav-cta, .b-blue, .b-white, .btn, .glass, .tag, .pill, .links a, .feat li, .skill, .card, .project) { -webkit-backdrop-filter: none; backdrop-filter: none; }
+    .glass, .pill, .navpill, .b-white { --lg-fill: rgb(22 25 36 / .95); }
+    .ambient { display: none; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+    .reveal { opacity: 1; transform: none; }
+  }
+</style>
 </head>
 <body>
-  <h1>Tianyu Yan</h1>
-  <p>个人主页建设中。</p>
+<div class="spot" aria-hidden="true"></div>
+<div class="ambient" aria-hidden="true"><i></i><i></i><i></i></div>
+
+<div class="cursor" aria-hidden="true"></div>
+
+<nav class="top" id="nav">
+  <a class="logo" href="#top"><i>TY</i><span>Tianyu Yan</span></a>
+  <div class="navpill">
+    <span class="lens" aria-hidden="true"></span>
+    <a href="#work">Work</a><a href="#publications">Publications</a><a href="#experience">Experience</a><a href="#awards">Awards</a>
+  </div>
+  <a class="nav-cta" href="mailto:2981431354@mail.dlut.edu.cn">Get in touch</a>
+</nav>
+
+<section class="story" id="top" aria-label="Introduction">
+  <div class="stage">
+    <canvas id="gl" aria-hidden="true"></canvas>
+    <canvas class="fallback" data-scene="hero" data-pointer hidden aria-hidden="true"></canvas>
+    <div class="pills" aria-hidden="true">
+      <div class="pill"><b>CVPR</b> 2024<small>Highlight</small></div>
+      <div class="pill"><b>ECCV</b> 2026</div>
+      <div class="pill"><b>IEEE TIP</b> 2026</div>
+      <div class="pill"><b>IJCAI</b> 2024</div>
+      <div class="pill"><b>AAAI</b> 2025</div>
+      <div class="pill"><b>ACM MM</b> 2024</div>
+      <div class="pill"><b>IEEE TGRS</b> 2023</div>
+      <div class="pill"><b>ACCV</b> 2022</div>
+    </div>
+
+    <div class="scene s1">
+      <a class="idcard glass interactive fadeup" style="--d:.9s" href="https://github.com/Drchip61" target="_blank" rel="noopener">
+        <img src="assets/photo.jpg" alt="">
+        <span><b>严天宇</b><em>Ph.D. student · DUT</em></span>
+      </a>
+      <div class="s1-left">
+        <span class="tag fadeup">Ph.D. student · Dalian University of Technology · IIAU Lab</span>
+        <h1 class="split">Tianyu Yan</h1>
+        <p class="typed fadeup" style="--d:.5s">I build <span class="rotator" id="rotator">AI companions that remember</span><span class="caret"></span></p>
+      </div>
+      <div class="s1-right fadeup" style="--d:.7s">
+        <p>Advised by Prof. Huchuan Lu. I work on multimodal LLMs, LLM agents and role-playing, interactive narrative and AI societies, and visual segmentation.</p>
+        <div class="row interactive"><a class="b-blue" href="#work">See my work</a><a class="b-white" href="assets/Tianyu_Yan_CV.pdf" target="_blank" rel="noopener">View CV</a></div>
+      </div>
+      <div class="hint fadeup" style="--d:1.2s">Scroll</div>
+    </div>
+
+    <div class="scene s2">
+      <div class="s2-cap">
+        <span class="tag fadeup">Published at</span>
+        <p class="big split">6 papers</p>
+        <p class="small fadeup" style="--d:.35s">as first, student-first or co-first author, at CVPR, ECCV, IJCAI, IEEE TIP, IEEE TGRS and ACCV.</p>
+      </div>
+    </div>
+
+    <div class="scene s3">
+      <h2 class="split">Minds, Worlds<br>&amp; Vision</h2>
+      <p class="s3-note fadeup" style="--d:.3s">Four threads run through my work, from Segment Anything models to AI companions and the societies they live in.</p>
+      <div class="cards4 interactive">
+        <a class="rcard glass fadeup" style="--d:.3s" href="#publications"><span class="no">01</span><h3>Multimodal LLMs</h3><p>Proactive assistance in continuous egocentric video.</p></a>
+        <a class="rcard glass fadeup" style="--d:.4s" href="#work"><span class="no">02</span><h3>LLM Agents &amp; Role-Playing</h3><p>Digital humans with long-term memory and a consistent persona, such as MIO.</p></a>
+        <a class="rcard glass fadeup" style="--d:.5s" href="#work"><span class="no">03</span><h3>Narrative &amp; AI Societies</h3><p>Persistent worlds people can follow and steer, such as Synthetic World.</p></a>
+        <a class="rcard glass fadeup" style="--d:.6s" href="#publications"><span class="no">04</span><h3>Visual Segmentation</h3><p>Segment Anything for marine animals and remote sensing: Dual-SAM, HFP-SAM, MAS-SAM.</p></a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<main>
+  <!-- ========== 01 Featured projects ========== -->
+  <section id="work">
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <span class="num">01</span><h2>Featured work</h2>
+        <p>Two systems I built at Alaya Lab.</p>
+      </div>
+
+      <article class="project glow reveal">
+        <div class="media">
+          <video src="assets/mio-demo.mp4" poster="assets/mio-demo.jpg" autoplay muted loop playsinline preload="metadata"></video>
+        </div>
+        <div class="project-body">
+          <div>
+            <span class="kind">System · Alaya Lab 2026</span>
+            <h3>MIO</h3>
+            <p class="sub">A digital human for live streaming and AI companionship</p>
+            <div class="links"><a class="todo" href="#">Full demo video</a></div>
+          </div>
+          <div>
+            <p class="desc">A conversational digital human served through an OpenAI-compatible API, so it plugs into custom front ends, companion devices, and live-stream interaction. Its memory keeps growing with every conversation.</p>
+            <ul class="feat"><li>Qwen3-8B SFT controller</li><li>Persona · experience · knowledge stores</li><li>EverMemOS long-term memory</li><li>Expression-to-motion avatar</li></ul>
+          </div>
+        </div>
+      </article>
+
+      <article class="project glow reveal">
+        <div class="media">
+          <canvas data-scene="society" aria-label="Animated sketch: AI residents post into a shared feed"></canvas>
+        </div>
+        <div class="project-body">
+          <div>
+            <span class="kind">System · Alaya Lab 2026</span>
+            <h3>Synthetic World</h3>
+            <p class="sub">A self-evolving AI community</p>
+            <div class="links"><a class="todo" href="#">Live demo</a></div>
+          </div>
+          <div>
+            <p class="desc">Users define a world and its characters; AI residents post, reply, and react as events unfold. Visitors can watch, or steer the story with "Next Act". Past events and character states shape what happens next.</p>
+            <ul class="feat"><li>Structured LLM generation</li><li>Persistent event state</li><li>Scheduled community updates</li><li>iOS · Android · Web</li></ul>
+          </div>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <!-- ========== 02 Publications ========== -->
+  <section id="publications">
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <span class="num">02</span><h2>Publications</h2>
+        <p>Segment Anything models for marine animals and remote sensing, and proactive assistance in egocentric video.</p>
+      </div>
+      <p class="note reveal">* equal contribution. Student-first: first student author after the advisor. Animations are schematic sketches drawn in code, not model outputs.</p>
+
+      <div class="group-title reveal">Published &amp; accepted</div>
+      <div class="grid">
+        <article class="card wide glow reveal">
+          <div class="viz"><canvas data-scene="ego" aria-label="Animated sketch: a first-person kitchen view where an assistant offers help proactively"></canvas></div>
+          <div class="card-body">
+            <div class="badges"><span class="badge hl">ECCV 2026</span><span class="badge role">Co-first author</span></div>
+            <h3>Vinci2: Providing Proactive Assistance in Continuous Egocentric Videos</h3>
+            <p class="authors">Sitong Gong, <b>Tianyu Yan*</b>, Caixin Kang*, Bo Zheng, …, Yoichi Sato, Yifei Huang</p>
+            <div class="also">From my visit to The University of Tokyo.</div>
+          </div>
+        </article>
+
+        <article class="card wide flip glow reveal">
+          <div class="viz"><canvas data-scene="hfpsam" aria-label="Animated walkthrough of HFP-SAM: wavelet frequency map, frequency guided adapters, frequency-aware point selection, Full-View Mamba refinement"></canvas></div>
+          <div class="card-body">
+            <div class="badges"><span class="badge">IEEE TIP 2026</span><span class="badge">CCF-A</span><span class="badge role">Student-first</span></div>
+            <h3>HFP-SAM: Hierarchical Frequency Prompted SAM for Efficient Marine Animal Segmentation</h3>
+            <p class="authors">Pingping Zhang, <b>Tianyu Yan</b>, Yuhao Wang, Yang Liu, et al.</p>
+            <p class="method">A wavelet frequency prior steers a frozen SAM: <b>FGA</b> injects frequency masks into lightweight adapters, <b>FPS</b> turns high-frequency windows into point prompts, and <b>Full-View Mamba</b> refines the mask at linear cost.</p>
+            <div class="links"><a href="https://github.com/Drchip61/TIP-HFP-SAM" target="_blank" rel="noopener">Code</a></div>
+          </div>
+        </article>
+
+        <article class="card wide glow reveal">
+          <div class="viz"><canvas data-scene="dualsam" aria-label="Animated walkthrough of Dual-SAM: original and gamma branches, multi-level coupled prompts, DFAM, mutual supervision, criss-cross connectivity prediction"></canvas></div>
+          <div class="card-body">
+            <div class="badges"><span class="badge hl">CVPR 2024 · Highlight</span><span class="badge">CCF-A</span><span class="badge role">Student-first</span></div>
+            <h3>Fantastic Animals and Where to Find Them: Segment Any Marine Animal with Dual SAM</h3>
+            <p class="authors">Pingping Zhang, <b>Tianyu Yan</b>, Yang Liu, Huchuan Lu</p>
+            <p class="method">Two SAM branches see the original and a gamma-corrected image, linked by <b>multi-level coupled prompts</b>. <b>DFAM</b> fuses their features, the two decoders supervise each other with pseudo-labels, and <b>C3P</b> predicts each pixel's criss-cross connectivity instead of a plain mask.</p>
+            <div class="links"><a href="https://github.com/Drchip61/Dual_SAM" target="_blank" rel="noopener">Code</a></div>
+          </div>
+        </article>
+
+        <article class="card glow reveal">
+          <div class="viz"><canvas data-scene="marine" data-variant="b" data-seed="8" aria-label="Animated sketch: multi-scale features and binary masks of marine animals"></canvas></div>
+          <div class="card-body">
+            <div class="badges"><span class="badge">IJCAI 2024</span><span class="badge">CCF-A</span><span class="badge role">First author</span></div>
+            <h3>MAS-SAM: Segment Any Marine Animal with Aggregated Features</h3>
+            <p class="authors"><b>Tianyu Yan</b>, Zifu Wan, Xinhao Deng, Pingping Zhang, Yang Liu, Huchuan Lu</p>
+            <div class="links"><a href="https://github.com/Drchip61/MAS-SAM" target="_blank" rel="noopener">Code</a></div>
+          </div>
+        </article>
+
+        <article class="card glow reveal">
+          <div class="viz"><canvas data-scene="change" data-variant="wipe" data-seed="4" aria-label="Animated sketch: before and after aerial images with a change map"></canvas></div>
+          <div class="card-body">
+            <div class="badges"><span class="badge">IEEE TGRS 2023</span><span class="badge">JCR Q1</span><span class="badge role">First author</span></div>
+            <h3>TransY-Net: Learning Fully Transformer Networks for Change Detection of Remote Sensing Images</h3>
+            <p class="authors"><b>Tianyu Yan</b>, Zifu Wan, Pingping Zhang, Gong Cheng, Huchuan Lu</p>
+            <div class="also">Conference version: <b>Fully Transformer Network for Change Detection of Remote Sensing Images</b> · ACCV 2022 · <b>Tianyu Yan</b>, Zifu Wan, Pingping Zhang</div>
+            <div class="links"><a href="https://github.com/Drchip61/TransYNet" target="_blank" rel="noopener">Code</a></div>
+          </div>
+        </article>
+      </div>
+
+      <div class="group-title reveal">Also co-authored</div>
+      <div class="grid">
+        <article class="card glow reveal">
+          <div class="viz"><canvas data-scene="reid" aria-label="Animated sketch: RGB, NIR and thermal views fused to re-identify a person"></canvas></div>
+          <div class="card-body">
+            <div class="badges"><span class="badge">AAAI 2025</span><span class="badge">CCF-A</span></div>
+            <h3>MambaPro: Multi-Modal Object Re-identification with Mamba Aggregation and Synergistic Prompt</h3>
+            <p class="authors">Yuhao Wang, Xuehu Liu, <b>Tianyu Yan</b>, Yang Liu, Aihua Zheng, Pingping Zhang, Huchuan Lu</p>
+          </div>
+        </article>
+        <article class="card glow reveal">
+          <div class="viz"><canvas data-scene="sod" aria-label="Animated sketch: a butterfly becomes a saliency map"></canvas></div>
+          <div class="card-body">
+            <div class="badges"><span class="badge">ACM MM 2024</span><span class="badge">CCF-A</span></div>
+            <h3>Multi-Scale and Detail-Enhanced Segment Anything Model for Salient Object Detection</h3>
+            <p class="authors">Shixuan Gao, Pingping Zhang, <b>Tianyu Yan</b>, Huchuan Lu</p>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== 03 Experience & education ========== -->
+  <section id="experience">
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <span class="num">03</span><h2>Experience</h2>
+      </div>
+      <div class="exp">
+        <div class="reveal">
+          <h3>Research &amp; internships</h3>
+          <ol class="timeline">
+            <li><time>JAN 2026 – OCT 2026</time><div>Alaya Lab</div><span>Research intern</span>
+              <p>Built the algorithms and systems behind the digital human MIO and the AI society platform Synthetic World, from the models to the live product.</p></li>
+            <li><time>OCT 2025 – JAN 2026</time><div>The University of Tokyo</div><span>Visiting student</span>
+              <p>Researched proactive assistance in continuous egocentric video; the resulting paper, Vinci2, is accepted to ECCV 2026.</p></li>
+          </ol>
+        </div>
+        <div class="reveal">
+          <h3>Education</h3>
+          <ol class="timeline">
+            <li><time>SEP 2025 – PRESENT</time><div>Ph.D., Dalian University of Technology</div><span>IIAU Lab · advisor Prof. Huchuan Lu</span></li>
+            <li><time>SEP 2023 – JUN 2025</time><div>M.Eng. in Computer Science and Technology</div><span>Dalian University of Technology · IIAU Lab</span></li>
+            <li><time>SEP 2019 – JUN 2023</time><div>B.Eng. in Artificial Intelligence</div><span>Dalian University of Technology · average score 91.6</span></li>
+          </ol>
+        </div>
+      </div>
+      <div class="skills reveal">
+        <div class="skill"><b>Programming</b><span>Python, PyTorch, C++, Linux, TypeScript / Node.js, React Native</span></div>
+        <div class="skill"><b>LLMs</b><span>SFT, self-play RL, memory and retrieval augmentation, LLM-as-a-judge</span></div>
+        <div class="skill"><b>Research</b><span>Benchmarks and datasets, human evaluation, longitudinal user studies</span></div>
+        <div class="skill"><b>Language</b><span>English (TOEFL 91)</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== 04 Earlier projects ========== -->
+  <section id="projects">
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <span class="num">04</span><h2>Earlier projects</h2>
+        <p>Applied work in medical imaging and media.</p>
+      </div>
+      <div class="grid">
+        <article class="card glow reveal">
+          <div class="viz"><canvas data-scene="mri" aria-label="Animated sketch: a 3D MRI volume is segmented, then placenta accreta spectrum is diagnosed"></canvas></div>
+          <div class="card-body">
+            <div class="badges"><span class="badge">2024</span><span class="badge">Medical imaging</span></div>
+            <h3>3DSAMba: Diagnosing Placenta Accreta Spectrum from MRI</h3>
+            <p class="desc">A 3D Segment Anything Model with visual Mamba that segments the lesion in MRI, then diagnoses placenta accreta spectrum from the segmented region.</p>
+            <div class="links"><a href="https://github.com/Drchip61/PASD" target="_blank" rel="noopener">Code</a></div>
+          </div>
+        </article>
+        <article class="card glow reveal">
+          <div class="viz"><canvas data-scene="embed" aria-label="Animated sketch: a new work compared against a library in embedding space"></canvas></div>
+          <div class="card-body">
+            <div class="badges"><span class="badge">2025</span><span class="badge">Xinhua News Agency</span></div>
+            <h3>Original Content Detection Model</h3>
+            <p class="desc">Learns a vector for each original work in the library and compares new submissions against it to check originality, with 3D reconstruction of original content.</p>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== 05 Awards ========== -->
+  <section id="awards">
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <span class="num">05</span><h2>Awards</h2>
+      </div>
+      <ol class="timeline reveal">
+        <li><time>DEC 2023</time><div>Huawei Ascend AI Developer Kit Competition — Regional Gold Award</div><span>First contributor</span></li>
+        <li><time>AUG 2023</time><div>Liaoning Province Innovation &amp; Entrepreneurship Competition — Special Prize</div><span>First contributor</span></li>
+        <li><time>DEC 2021</time><div>National Undergraduate Computer Design Competition — Second Prize</div><span>First contributor</span></li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="contact" id="contact">
+    <div class="wrap reveal">
+      <h2><span class="grad">Get in touch</span></h2>
+      <p>Questions about my work, or ideas to build together.</p>
+      <a class="btn primary" href="mailto:2981431354@mail.dlut.edu.cn">2981431354@mail.dlut.edu.cn</a>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap"><span>© 2026 Tianyu Yan</span><span>Last updated October 2026</span></div>
+</footer>
+
+<script src="js/visuals.js"></script>
+<script src="js/stage.js"></script>
+<script>
+  const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const reduceTransparency = matchMedia('(prefers-reduced-transparency: reduce)').matches;
+
+  // Glass lens that slides between items. The leading edge sets off first and the trailing
+  // edge follows a beat later, so the lens stretches like a drop of liquid on the way.
+  // lens.home() says where it rests when nothing is pressed.
+  function lensTo(lens, el, instant) {
+    if (!el || !el.offsetWidth) { lens.classList.remove('on'); return; }
+    const left = el.offsetLeft, right = lens.parentElement.clientWidth - left - el.offsetWidth;
+    const glide = lens.classList.contains('on') && !instant;
+    if (glide) lens.style.transitionDelay = left > parseFloat(lens.style.left) ? '.06s, 0s, 0s, 0s' : '0s, .06s, 0s, 0s';
+    else lens.style.transition = 'none';
+    lens.style.left = left + 'px'; lens.style.right = right + 'px';
+    if (!glide) { lens.offsetWidth; lens.style.transition = ''; }
+    lens.classList.add('on');
+  }
+  // Re-seat the lens whenever its bar changes size (web font swap, breakpoints).
+  const lensRO = new ResizeObserver(es => es.forEach(({ target }) => {
+    const lens = target.querySelector(':scope > .lens');
+    lensTo(lens, lens.home(), true);
+  }));
+
+  // Nav pill: the lens follows the hovered link, otherwise the section in view.
+  const navpill = document.querySelector('.navpill'), navLens = navpill.querySelector('.lens');
+  const navLinks = [...navpill.querySelectorAll('a')], navTargets = navLinks.map(a => document.querySelector(a.hash));
+  let navActive = null, navHover = null;
+  navLens.home = () => navHover || navActive;
+  lensRO.observe(navpill);
+  navpill.addEventListener('pointerover', e => { const a = e.target.closest('a'); if (a) { navHover = a; lensTo(navLens, a); } });
+  navpill.addEventListener('pointerleave', () => { navHover = null; lensTo(navLens, navActive); });
+  function spy() {
+    let cur = null;
+    navTargets.forEach((s, i) => { if (s.getBoundingClientRect().top < innerHeight * .4) cur = navLinks[i]; });
+    if (cur === navActive) return;
+    navActive = cur;
+    navLinks.forEach(a => a.classList.toggle('on', a === cur));
+    if (!navHover) lensTo(navLens, cur);
+  }
+
+  // Videos play only on screen.
+  const vio = new IntersectionObserver(es => es.forEach(e => {
+    const v = e.target;
+    if (reduceMotion || !e.isIntersecting) v.pause();
+    else v.play().catch(() => {});
+  }), { threshold: 0.25 });
+  document.querySelectorAll('video').forEach(v => { if (reduceMotion) v.removeAttribute('autoplay'); vio.observe(v); });
+
+  // Reveal on scroll.
+  const rio = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); rio.unobserve(e.target); } }), { threshold: 0.12 });
+  document.querySelectorAll('.reveal').forEach(el => rio.observe(el));
+
+  // Sparse random stars for the ambient layer, drawn once into a 720px tile (2x for sharpness).
+  (() => {
+    const c = document.createElement('canvas'), g = c.getContext('2d');
+    c.width = c.height = 1440;
+    for (let i = 0; i < 110; i++) {
+      g.fillStyle = `hsla(${215 + Math.random() * 70}, 90%, 88%, ${.3 + Math.random() * .7})`;
+      g.beginPath(); g.arc(Math.random() * 1440, Math.random() * 1440, Math.random() < .85 ? 1.4 : 2.4, 0, 7); g.fill();
+    }
+    document.querySelector('.ambient').style.setProperty('--stars', `url(${c.toDataURL()})`);
+  })();
+
+  // Cursor spotlight, and the light inside whichever glass element is under the pointer.
+  const spot = document.querySelector('.spot');
+  const GLASS = '.navpill, .nav-cta, .logo i, .b-blue, .b-white, .btn, .glass, .tag, .links a, .feat li, .skill, .card, .project';
+  const lightAt = (el, e) => {
+    const b = el.getBoundingClientRect();
+    el.style.setProperty('--lx', (e.clientX - b.left) / b.width * 100 + '%');
+    el.style.setProperty('--ly', (e.clientY - b.top) / b.height * 100 + '%');
+  };
+  addEventListener('pointermove', e => {
+    spot.style.setProperty('--x', e.clientX + 'px'); spot.style.setProperty('--y', e.clientY + 'px');
+    const el = e.target.closest?.(GLASS);
+    if (el) lightAt(el, e);
+  }, { passive: true });
+
+  // Light direction for every glass rim, like tilting a phone: the pointer pulls the light
+  // toward itself (centre = light from the top-left); on touch screens scrolling sways it.
+  // The angle is unwrapped so the eased transition always takes the short way round.
+  if (!reduceMotion) {
+    const root = document.documentElement;
+    let tx = 0, ty = 0, la = 135, queued = false;
+    const tilt = () => {
+      queued = false;
+      const target = Math.atan2(.5 - tx, ty - .5) * 180 / Math.PI;
+      la += ((target - la) % 360 + 540) % 360 - 180;
+      root.style.setProperty('--la', la.toFixed(1) + 'deg');
+    };
+    const queue = () => { if (!queued) { queued = true; requestAnimationFrame(tilt); } };
+    if (matchMedia('(pointer: fine)').matches) addEventListener('pointermove', e => { tx = e.clientX / innerWidth * 2 - 1; ty = e.clientY / innerHeight * 2 - 1; queue(); }, { passive: true });
+    else addEventListener('scroll', () => { tx = Math.sin(scrollY / 420) * .8; queue(); }, { passive: true });
+  }
+
+  // Press: the glass swells, lights up under the finger and leans toward it while held,
+  // then springs back on release. Items inside a lens bar press the lens instead.
+  const PRESS = '.nav-cta, .b-blue, .b-white, .btn, .idcard, .rcard, .links a:not(.todo), .navpill a';
+  let pressed = null;
+  addEventListener('pointerdown', e => {
+    const hit = e.button === 0 && e.target.closest(PRESS);
+    if (!hit) return;
+    const lens = hit.parentElement.querySelector(':scope > .lens');
+    if (lens) lensTo(lens, hit);
+    pressed = { el: lens || hit, lens };
+    lightAt(pressed.el, e);
+    pressed.el.classList.add('is-press');
+  });
+  addEventListener('pointermove', e => {
+    if (!pressed || pressed.lens) return;
+    const el = pressed.el, b = el.getBoundingClientRect();
+    const nx = Math.max(-1, Math.min(1, (e.clientX - b.left) / b.width * 2 - 1));
+    const ny = Math.max(-1, Math.min(1, (e.clientY - b.top) / b.height * 2 - 1));
+    el.style.translate = `${(nx * 3).toFixed(2)}px ${(ny * 3).toFixed(2)}px`;
+    el.style.setProperty('--sx', ((Math.abs(nx) - Math.abs(ny)) * .025).toFixed(4));
+    el.style.setProperty('--sy', ((Math.abs(ny) - Math.abs(nx)) * .025).toFixed(4));
+  }, { passive: true });
+  const release = () => {
+    if (!pressed) return;
+    const { el, lens } = pressed;
+    pressed = null;
+    el.classList.remove('is-press');
+    ['translate', '--sx', '--sy'].forEach(p => el.style.removeProperty(p));
+    if (lens) setTimeout(() => lensTo(lens, lens.home())); // after the click has picked the new item
+  };
+  ['pointerup', 'pointercancel', 'dragstart', 'blur'].forEach(t => addEventListener(t, release));
+
+  // Edge refraction, desktop Chromium only (other engines ignore SVG filters in backdrop-filter,
+  // and phones keep the plain blur to save GPU over the particle stage).
+  // Each glass size gets a displacement map that pulls the backdrop inward near the rim,
+  // as if seen through the rounded edge of a thick lens.
+  (() => {
+    if (reduceTransparency || !matchMedia('(pointer: fine)').matches || !navigator.userAgentData?.brands?.some(b => b.brand === 'Chromium')) return;
+    const NS = 'http://www.w3.org/2000/svg';
+    const svg = document.createElementNS(NS, 'svg');
+    svg.setAttribute('width', 0); svg.setAttribute('height', 0); svg.setAttribute('aria-hidden', 'true');
+    svg.style.position = 'absolute';
+    document.body.appendChild(svg);
+    const made = new Map();
+    const filterFor = (w, h, r) => {
+      const key = `${w}x${h}x${r}`;
+      if (made.has(key)) return made.get(key);
+      // The lens band is wide (up to 40px) so the bending reads like thick glass. The map is
+      // smooth, so big panels get a downscaled map that the filter stretches back to size.
+      const bezel = Math.min(Math.min(w, h) / 2 * .75, 40), s = Math.min(1, 320 / Math.max(w, h));
+      const mw = Math.max(2, Math.round(w * s)), mh = Math.max(2, Math.round(h * s));
+      const mr = r * s, mb = bezel * s, hw = mw / 2, hh = mh / 2;
+      const c = document.createElement('canvas'); c.width = mw; c.height = mh;
+      const ctx = c.getContext('2d'), img = ctx.createImageData(mw, mh), d = img.data;
+      for (let y = 0; y < mh; y++) for (let x = 0; x < mw; x++) {
+        // distance in from the rounded-rect edge, and the outward normal there
+        const px = x + .5 - hw, py = y + .5 - hh;
+        const qx = Math.abs(px) - (hw - mr), qy = Math.abs(py) - (hh - mr);
+        let depth, nx = 0, ny = 0;
+        if (qx > 0 && qy > 0) { const l = Math.hypot(qx, qy); depth = mr - l; nx = qx / l; ny = qy / l; }
+        else if (qx > qy) { depth = mr - qx; nx = 1; }
+        else { depth = mr - qy; ny = 1; }
+        const k = depth < 0 || depth >= mb ? 0 : (1 - depth / mb) ** 1.6, i = (y * mw + x) * 4;
+        d[i] = 128 - Math.sign(px) * nx * k * 127;
+        d[i + 1] = 128 - Math.sign(py) * ny * k * 127;
+        d[i + 2] = 128; d[i + 3] = 255;
+      }
+      ctx.putImageData(img, 0, 0);
+      const id = 'lg-refract-' + made.size, f = document.createElementNS(NS, 'filter');
+      Object.entries({ id, x: 0, y: 0, width: w, height: h, filterUnits: 'userSpaceOnUse', 'color-interpolation-filters': 'sRGB' }).forEach(([k, v]) => f.setAttribute(k, v));
+      f.innerHTML = `<feImage href="${c.toDataURL()}" x="0" y="0" width="${w}" height="${h}" preserveAspectRatio="none" result="map"/>` +
+        `<feDisplacementMap in="SourceGraphic" in2="map" scale="${Math.round(bezel * 1.15)}" xChannelSelector="R" yChannelSelector="G"/>`;
+      svg.appendChild(f);
+      made.set(key, id);
+      return id;
+    };
+    const ro = new ResizeObserver(entries => entries.forEach(({ target: el }) => {
+      const w = el.offsetWidth, h = el.offsetHeight;
+      if (!w || !h) return el.style.removeProperty('--lg-refract');
+      const r = Math.min(parseFloat(getComputedStyle(el).borderTopLeftRadius) || 0, w / 2, h / 2);
+      el.style.setProperty('--lg-refract', `url(#${filterFor(w, h, Math.round(r))})`);
+    }));
+    document.querySelectorAll('.navpill, .nav-cta, .b-blue, .b-white, .btn, .glass, .tag, .pill, .card, .project, .skill').forEach(el => ro.observe(el));
+  })();
+
+  // Custom ring cursor on mouse-driven devices.
+  if (matchMedia('(pointer: fine)').matches && !reduceMotion) {
+    const cur = document.querySelector('.cursor');
+    let x = -100, y = -100, tx = x, ty = y;
+    document.documentElement.classList.add('has-cursor');
+    addEventListener('pointermove', e => { tx = e.clientX; ty = e.clientY; cur.classList.add('on'); }, { passive: true });
+    document.addEventListener('pointerleave', () => cur.classList.remove('on'));
+    document.addEventListener('pointerover', e => cur.classList.toggle('hover', !!e.target.closest('a, button')));
+    (function move() { x += (tx - x) * 0.25; y += (ty - y) * 0.25; cur.style.transform = `translate(${x}px, ${y}px)`; requestAnimationFrame(move); })();
+  }
+
+  // Nav background once past the particle stage.
+  const nav = document.getElementById('nav'), story = document.querySelector('.story');
+  const onScroll = () => { nav.classList.toggle('scrolled', story.getBoundingClientRect().bottom < 80); spy(); };
+  addEventListener('scroll', onScroll, { passive: true }); onScroll();
+
+  // Typing rotator in the hero.
+  (() => {
+    const el = document.getElementById('rotator');
+    const words = ['AI companions that remember', 'AI societies you can step into', 'digital humans that stream live', 'assistants that see what you see', 'segmentation models on SAM'];
+    if (reduceMotion) return;
+    let w = 0, i = words[0].length, del = true;
+    const tick = () => {
+      const word = words[w];
+      i += del ? -1 : 1;
+      el.textContent = word.slice(0, i);
+      let wait = del ? 28 : 55;
+      if (!del && i === word.length) { del = true; wait = 2200; }
+      else if (del && i === 0) { del = false; w = (w + 1) % words.length; wait = 300; }
+      setTimeout(tick, wait);
+    };
+    setTimeout(tick, 2600);
+  })();
+</script>
 </body>
 </html>
