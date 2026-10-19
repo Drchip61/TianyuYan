@@ -1,7 +1,8 @@
 /* The scroll-driven particle stage at the top of the page.
    On load a particle sphere bursts into a tree standing in rippling water. Scrolling sends the
    publication venues orbiting around it, then folds the tree into a glass cube that spells my name.
-   Plain WebGL, no libraries. */
+   Scrolling always settles on one of those three scenes, and landing on one sends a tremor
+   through the particles. Plain WebGL, no libraries. */
 (() => {
   'use strict';
   const story = document.querySelector('.story');
@@ -167,6 +168,77 @@
   new IntersectionObserver(es => { visible = es[0].isIntersecting; }).observe(story);
   const progress = () => { const r = story.getBoundingClientRect(); return clamp(-r.top / Math.max(1, r.height - innerHeight)); };
 
+  // ---------- detents: scrolling settles on a scene ----------
+  // The three scenes rest at these points of the story's scroll progress; the start of the
+  // page content below is a fourth stop. When scrolling stops between two stops, the page
+  // glides to the nearer one, leaning toward the way it was moving so a short flick still
+  // advances a step. Arriving on a scene records the time for the landing tremor.
+  const RESTS = [0, 0.35, 0.86], LEAN = 48;
+  let landed = -1e9;
+  (() => {
+    const root = document.documentElement, hasEnd = 'onscrollend' in window;
+    let lastY = scrollY, dir = 0, moved = false, touching = false, glide = 0, idle = 0;
+    const stops = () => {
+      const top = story.getBoundingClientRect().top + scrollY, range = story.offsetHeight - innerHeight;
+      return [...RESTS.map(s => Math.round(top + s * range)), Math.round(top + story.offsetHeight)];
+    };
+    const land = i => { if (i < RESTS.length && !reduce) landed = performance.now(); };
+    function glideTo(i, ys) {
+      const from = scrollY, d = ys[i] - from;
+      moved = false;
+      if (reduce || Math.abs(d) < 2) { root.style.scrollBehavior = 'auto'; scrollTo(0, ys[i]); root.style.scrollBehavior = ''; lastY = scrollY; land(i); return; }
+      const dur = clamp(320 + Math.abs(d) * 0.45, 420, 900), t0 = performance.now();
+      root.style.scrollBehavior = 'auto';
+      const step = now => {
+        const t = clamp((now - t0) / dur), e = t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2;
+        scrollTo(0, from + d * e);
+        lastY = scrollY;
+        if (t < 1) { glide = requestAnimationFrame(step); return; }
+        glide = 0; root.style.scrollBehavior = '';
+        land(i);
+      };
+      glide = requestAnimationFrame(step);
+    }
+    function stop() {
+      if (glide) { cancelAnimationFrame(glide); glide = 0; root.style.scrollBehavior = ''; lastY = scrollY; }
+    }
+    function settle() {
+      if (glide || touching) return;
+      const y = scrollY, ys = stops(), at = ys.findIndex(v => Math.abs(v - y) < 2);
+      if (at >= 0) { if (moved) land(at); moved = false; return; }
+      if (y < ys[0] || y > ys[ys.length - 1]) { moved = false; return; }
+      let i = 0;
+      while (y > ys[i + 1]) i++;
+      const f = (y - ys[i]) / (ys[i + 1] - ys[i]), lean = Math.min(0.15, LEAN / (ys[i + 1] - ys[i]));
+      glideTo(dir > 0 ? (f > lean ? i + 1 : i) : dir < 0 ? (f < 1 - lean ? i : i + 1) : Math.round(f) + i, ys);
+    }
+    addEventListener('scroll', () => {
+      if (glide) return;
+      const y = scrollY;
+      if (y !== lastY) { dir = Math.sign(y - lastY); moved = true; lastY = y; }
+      if (!hasEnd) { clearTimeout(idle); idle = setTimeout(settle, 160); }
+    }, { passive: true });
+    if (hasEnd) addEventListener('scrollend', settle);
+    addEventListener('wheel', stop, { passive: true });
+    addEventListener('touchstart', () => { touching = true; stop(); }, { passive: true });
+    ['touchend', 'touchcancel'].forEach(t => addEventListener(t, () => {
+      touching = false;
+      clearTimeout(idle); idle = setTimeout(settle, 160);
+    }, { passive: true }));
+    // Arrow keys, Page Up/Down and Space step one scene at a time inside the story.
+    addEventListener('keydown', e => {
+      const down = ['ArrowDown', 'PageDown'].includes(e.key) || (e.key === ' ' && !e.shiftKey);
+      const up = ['ArrowUp', 'PageUp'].includes(e.key) || (e.key === ' ' && e.shiftKey);
+      if ((!down && !up) || e.altKey || e.ctrlKey || e.metaKey || e.defaultPrevented) return;
+      if (e.target.closest?.('input, textarea, select, [contenteditable], dialog') || (e.key === ' ' && e.target.closest?.('a, button'))) return;
+      const y = scrollY, ys = stops();
+      const i = down ? ys.findIndex(v => v > y + 2) : ys.findLastIndex(v => v < y - 2);
+      if (i < 0 || (down && y < ys[0] - 2) || (up && y > ys[ys.length - 1] + 2)) return;
+      e.preventDefault(); stop();
+      glideTo(i, ys);
+    });
+  })();
+
   function resize() {
     const r = stage.getBoundingClientRect(), w = Math.round(r.width), h = Math.round(r.height);
     dpr = Math.min(devicePixelRatio || 1, mobile ? 1.5 : 1.75);
@@ -178,7 +250,7 @@
     proj = M.persp(FOV, aspect, 0.1, 80);
     view = M.look([0, lerp(0.3, 0.2, c), camZ], [0, lerp(-0.18, -0.02, c) - (portrait ? 0.35 * fit : 0), 0]);
   }
-  function placePills(t, s) {
+  function placePills(t, s, kick) {
     const pv = smooth(0.14, 0.26, s) * (1 - smooth(0.44, 0.54, s));
     if (pv < 0.002) { if (pills[0] && pills[0].style.opacity !== '0') pills.forEach(el => { el.style.opacity = '0'; }); return; }
     const portrait = W / H < 0.9, vp = M.mul(proj, view), half = camZ * Math.tan(FOV / 2) * (W / H), rx = Math.min(2.2, half * 0.8), rz = portrait ? 2.4 : 1.35;
@@ -186,7 +258,7 @@
       const a = i / pills.length * TAU + (reduce ? 0 : t * 0.16) + s * 3;
       const x = Math.cos(a) * rx, z = Math.sin(a) * rz, y = FLOOR + 0.42 + Math.sin(t * 0.9 + i) * 0.05 - (1 - pv) * 0.3;
       const c = M.apply(vp, x, y, z), sx = (c[0] / c[3] * 0.5 + 0.5) * W, sy = (0.5 - c[1] / c[3] * 0.5) * H, depth = (z + rz) / (2 * rz);
-      el.style.transform = `translate(${sx.toFixed(1)}px, ${sy.toFixed(1)}px) translate(-50%, -50%) scale(${lerp(0.72, 1.12, depth).toFixed(3)})`;
+      el.style.transform = `translate(${sx.toFixed(1)}px, ${sy.toFixed(1)}px) translate(-50%, -50%) scale(${(lerp(0.72, 1.12, depth) * (1 + kick)).toFixed(3)})`;
       el.style.opacity = (pv * lerp(0.3, 1, depth)).toFixed(3);
       el.style.filter = depth < 0.45 ? `blur(${((0.45 - depth) * 5).toFixed(1)}px)` : 'none';
       el.style.zIndex = String(Math.round(depth * 10));
@@ -204,7 +276,7 @@
     attribute vec3 aA, aB, aC, aK;
     attribute vec4 aR;            // x: stagger, y: size, z: hue, w: random
     uniform mat4 uProj, uView, uModel;
-    uniform float uTime, uP, uPx, uReflect, uFloor, uScatter, uAspect, uMouseStr;
+    uniform float uTime, uP, uPx, uReflect, uFloor, uScatter, uAspect, uMouseStr, uKickT;
     uniform vec2 uMouse;
     varying float vA;
     varying vec3 vC;
@@ -222,6 +294,14 @@
       vec3 d = vec3(sin(ph) * cos(th), cos(ph), sin(ph) * sin(th));
       p += d * (sin(3.14159 * t1) + sin(3.14159 * t2)) * (0.3 + 0.5 * aR.w) * uScatter;
       p += 0.012 * uScatter * vec3(sin(uTime * 1.3 + aR.x * 40.0), sin(uTime * 1.1 + aR.w * 50.0), cos(uTime * 1.7 + aR.x * 30.0));
+      // landing tremor: a fast shiver, a jelly wobble, and a bright ring running out from the centre
+      vec3 kc = p - vec3(0.0, -0.25, 0.0);
+      float kr = length(kc), kAmp = exp(-uKickT * 3.2) * uScatter;
+      float kf = (kr - uKickT * 3.0) * 3.2;
+      float ring = exp(-kf * kf) * exp(-uKickT * 1.4) * uScatter;
+      p += d * kAmp * 0.03 * sin(uKickT * 52.0 + aR.w * 31.0);
+      p += kc * kAmp * 0.07 * sin(uKickT * 17.0);
+      p += kc / max(kr, 0.05) * ring * 0.09;
       vec4 wp = uModel * vec4(p, 1.0);
       float above = wp.y - uFloor;
       if (uReflect > 0.5) wp.y = uFloor - above;
@@ -233,25 +313,27 @@
       gl_PointSize = max(1.0, aR.y * uPx / max(0.5, -vp.z));
       float k = mix(mix(aK.x, aK.y, t1), aK.z, t2);
       float tw = 0.75 + 0.25 * sin(uTime * 2.3 + aR.w * 40.0);
-      vA = k * tw * (uReflect > 0.5 ? 0.16 * exp(-max(above, 0.0) * 1.2) * step(0.0, above) : 1.0);
+      vA = k * tw * (1.0 + kAmp * 0.5 + ring * 1.4) * (uReflect > 0.5 ? 0.16 * exp(-max(above, 0.0) * 1.2) * step(0.0, above) : 1.0);
       vC = pal(aR.z);
     }`;
   const FLOOR_VS = `
     attribute vec3 aF;            // x, z, random
     uniform mat4 uProj, uView;
-    uniform float uTime, uFloor, uPx;
+    uniform float uTime, uFloor, uPx, uKickT;
     varying float vA;
     varying vec3 vC;
     void main() {
       vec2 q = aF.xy;
+      float sf = (length(q) - 0.2 - uKickT * 2.4) * 3.5;
+      float splash = exp(-sf * sf) * exp(-uKickT * 1.1);   // ring from a landing
       float ang = atan(q.y, q.x);
       float r = length(q) + 0.12 * sin(ang * 3.0 + uTime * 0.3) + 0.06 * sin(ang * 7.0 - uTime * 0.5);
       float w1 = pow(0.5 + 0.5 * sin(r * 7.0 - uTime * 1.8), 8.0);
       float w2 = pow(0.5 + 0.5 * sin(r * 3.6 - uTime * 1.1 + 1.3), 12.0) * 0.7;
-      vec4 vp = uView * vec4(q.x, uFloor + (w1 + w2) * 0.02, q.y, 1.0);
+      vec4 vp = uView * vec4(q.x, uFloor + (w1 + w2) * 0.02 + splash * 0.07, q.y, 1.0);
       gl_Position = uProj * vp;
       gl_PointSize = max(1.0, (1.0 + aF.z) * uPx / max(0.5, -vp.z));
-      vA = (0.07 + (w1 + w2) * 1.5) * smoothstep(5.5, 0.6, length(q));
+      vA = (0.07 + (w1 + w2) * 1.5 + splash * 1.6) * smoothstep(5.5, 0.6, length(q));
       vC = mix(vec3(0.2, 0.42, 1.0), vec3(0.5, 0.4, 1.0), aF.z);
     }`;
   const FS = `
@@ -281,8 +363,8 @@
       const uniforms = (p, names) => Object.fromEntries(names.map(n => [n, gl.getUniformLocation(p, n)]));
       const buf = data => { const b = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, b); gl.bufferData(gl.ARRAY_BUFFER, data, gl.STATIC_DRAW); return b; };
       P1 = prog(VS, FS); P2 = prog(FLOOR_VS, FS);
-      U1 = uniforms(P1, ['uProj', 'uView', 'uModel', 'uTime', 'uP', 'uPx', 'uReflect', 'uFloor', 'uScatter', 'uAspect', 'uMouseStr', 'uMouse']);
-      U2 = uniforms(P2, ['uProj', 'uView', 'uTime', 'uFloor', 'uPx']);
+      U1 = uniforms(P1, ['uProj', 'uView', 'uModel', 'uTime', 'uP', 'uPx', 'uReflect', 'uFloor', 'uScatter', 'uAspect', 'uMouseStr', 'uMouse', 'uKickT']);
+      U2 = uniforms(P2, ['uProj', 'uView', 'uTime', 'uFloor', 'uPx', 'uKickT']);
 
       const r = rng(7), N = mobile ? 11000 : 26000;
       const A = sphere(N, r), B = tree(N, r), C = cube(N, r, 'Tianyu Yan');
@@ -322,7 +404,7 @@
       gl.bindBuffer(gl.ARRAY_BUFFER, b); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, size, gl.FLOAT, false, 0, 0);
     }
   }
-  function draw(t, P, yaw, pitch) {
+  function draw(t, P, yaw, pitch, kt) {
     gl.viewport(0, 0, canvas.width, canvas.height);
     gl.clearColor(0.008, 0.012, 0.035, 1); gl.clear(gl.COLOR_BUFFER_BIT);
     gl.enable(gl.BLEND); gl.blendFunc(gl.ONE, gl.ONE);
@@ -334,12 +416,13 @@
     gl.uniform2f(U1.uMouse, mouse.x, mouse.y);
     // stars
     gl.uniformMatrix4fv(U1.uModel, false, M.model(t * 0.006, 0));
+    gl.uniform1f(U1.uKickT, kt);
     gl.uniform1f(U1.uP, 0); gl.uniform1f(U1.uScatter, 0); gl.uniform1f(U1.uReflect, 0); gl.uniform1f(U1.uMouseStr, 0); gl.uniform1f(U1.uPx, px * 0.9);
     bind(P1, stars); gl.drawArrays(gl.POINTS, 0, stars.n);
     // rippling water
     gl.useProgram(P2);
     gl.uniformMatrix4fv(U2.uProj, false, proj); gl.uniformMatrix4fv(U2.uView, false, view);
-    gl.uniform1f(U2.uTime, t); gl.uniform1f(U2.uFloor, FLOOR); gl.uniform1f(U2.uPx, px);
+    gl.uniform1f(U2.uTime, t); gl.uniform1f(U2.uFloor, FLOOR); gl.uniform1f(U2.uPx, px); gl.uniform1f(U2.uKickT, kt);
     bind(P2, floor); gl.drawArrays(gl.POINTS, 0, floor.n);
     // reflection, then the particles themselves
     gl.useProgram(P1);
@@ -357,17 +440,18 @@
     if (!visible) return;
     const t = (now - t0) / 1000, tt = reduce ? 2 : t, s = progress();
     const intro = reduce ? 1 : smooth(0.5, 3.2, t), toCube = smooth(0.5, 0.74, s);
+    const kt = Math.min(10, (now - landed) / 1000), wob = Math.exp(-kt * 4) * Math.sin(kt * 21);   // landing tremor
     mouse.x += (mouse.tx - mouse.x) * 0.06; mouse.y += (mouse.ty - mouse.y) * 0.06;
     mouse.str = lerp(mouse.str, now - mouse.last < 700 ? 1 : 0, 0.05);
     scenes[0].classList.toggle('on', intro > 0.45 && s < 0.16);
     scenes[1].classList.toggle('on', s > 0.2 && s < 0.48);
     scenes[2].classList.toggle('on', s > 0.7);
     resize(); camera(toCube);
-    placePills(tt, s);
+    placePills(tt, s, wob * 0.12);
     if (gl && P1) {
       const yawTree = reduce ? 0.6 : t * 0.12;
       const yawCube = Math.round(yawTree / TAU) * TAU + (reduce ? 0 : Math.sin(t * 0.5) * 0.38) + mouse.x * 0.35;
-      draw(tt, intro + toCube, lerp(yawTree + mouse.x * 0.25, yawCube, toCube), 0.04 + mouse.y * 0.06);
+      draw(tt, intro + toCube, lerp(yawTree + mouse.x * 0.25, yawCube, toCube), 0.04 + mouse.y * 0.06 + wob * 0.018, kt);
     }
   }
   requestAnimationFrame(frame);
